@@ -99,7 +99,7 @@ export class PlantillasController {
     @Query('soloPublicas') soloPublicas?: boolean,
     @Query('soloPropias') soloPropias?: boolean,
     @Query('buscar') buscar?: string,
-    @Request() req: any
+    @Request() req?: any
   ) {
     const filtros: FiltrosPlantillas = {
       tipo: Array.isArray(tipo) ? tipo : tipo ? [tipo] : undefined,

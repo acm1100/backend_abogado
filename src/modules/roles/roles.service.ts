@@ -39,6 +39,10 @@ export class RolesService {
   /**
    * Crear nuevo rol
    */
+  async create(createRolDto: CreateRolDto, empresaId: string, currentUserId?: string): Promise<Rol> {
+    return this.createRol(createRolDto, currentUserId);
+  }
+
   async createRol(createRolDto: CreateRolDto, currentUserId?: string): Promise<Rol> {
     const queryRunner = this.rolRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
@@ -65,20 +69,19 @@ export class RolesService {
         throw new ConflictException('Ya existe un rol con este nombre en la empresa');
       }
 
-      // Crear rol
+      // Crear rol (sin incluir permisos en el create)
+      const { permisos, ...rolData } = createRolDto;
       const rol = this.rolRepository.create({
-        ...createRolDto,
+        ...rolData,
         empresaId,
         activo: createRolDto.activo ?? true,
-        fechaCreacion: new Date(),
-        fechaActualizacion: new Date(),
       });
 
-      const savedRol = await queryRunner.manager.save(rol);
+      const savedRol = await queryRunner.manager.save(rol) as Rol;
 
       // Asignar permisos si se proporcionan
-      if (createRolDto.permisos && createRolDto.permisos.length > 0) {
-        await this.assignPermissionsToRole(savedRol.id, createRolDto.permisos, queryRunner);
+      if (permisos && permisos.length > 0) {
+        await this.assignPermissionsToRole(savedRol.id, permisos, queryRunner);
       }
 
       await queryRunner.commitTransaction();
@@ -98,6 +101,110 @@ export class RolesService {
   /**
    * Obtener todos los roles con filtros
    */
+  async findAll(empresaId: string, search?: string, nivel?: number, activo?: boolean, page = 1, limit = 10) {
+    return this.findAllRoles({
+      search,
+      nivel,
+      activo,
+      empresaId,
+      page,
+      limit
+    });
+  }
+
+  async findDisponibles(empresaId: string) {
+    return this.findAllRoles({ 
+      empresaId,
+      activo: true,
+      limit: 100
+    });
+  }
+
+  async findRolesSistema() {
+    return this.findAllRoles({ 
+      limit: 100
+    });
+  }
+
+  async obtenerEstadisticas(empresaId: string) {
+    const total = await this.rolRepository.count({ where: { empresaId } });
+    const activos = await this.rolRepository.count({ where: { empresaId, activo: true } });
+    return {
+      total,
+      activos,
+      inactivos: total - activos
+    };
+  }
+
+  async findOne(id: string, empresaId: string) {
+    return this.findOneRol(id, empresaId);
+  }
+
+  async update(id: string, updateRolDto: UpdateRolDto, empresaId: string) {
+    return this.updateRol(id, updateRolDto);
+  }
+
+  async remove(id: string, empresaId: string) {
+    return this.removeRol(id);
+  }
+
+  async asignarPermisos(id: string, permisosIds: string[], empresaId: string) {
+    return this.assignPermissions(id, { permisos: permisosIds }, undefined);
+  }
+
+  async quitarPermiso(id: string, permisoId: string, empresaId: string) {
+    // Implementar lógica para quitar un solo permiso
+    const rol = await this.findOneRol(id, empresaId);
+    const permisosActuales = rol.permisos?.map(p => p.permisoId) || [];
+    const nuevosPermisos = permisosActuales.filter(p => p !== permisoId);
+    return this.assignPermissions(id, { permisos: nuevosPermisos }, undefined);
+  }
+
+  async asignarUsuarios(id: string, usuariosIds: string[], empresaId: string) {
+    // Implementar lógica para asignar usuarios al rol
+    for (const usuarioId of usuariosIds) {
+      await this.usuarioRepository.update(usuarioId, { rolId: id });
+    }
+    return this.findOneRol(id, empresaId);
+  }
+
+  async quitarUsuario(id: string, usuarioId: string, empresaId: string) {
+    await this.usuarioRepository.update(usuarioId, { rolId: null });
+    return this.findOneRol(id, empresaId);
+  }
+
+  async clonar(id: string, nombre: string, descripcion: string, empresaId: string, usuarioId: string) {
+    const rolOriginal = await this.findOneRol(id, empresaId);
+    const nuevoRol = await this.create({
+      nombre,
+      descripcion,
+      nivel: rolOriginal.nivel,
+      permisos: rolOriginal.permisos?.map(p => p.permisoId) || []
+    }, empresaId, usuarioId);
+    return nuevoRol;
+  }
+
+  async cambiarEstado(id: string, activo: boolean, empresaId: string) {
+    await this.rolRepository.update(id, { activo });
+    return this.findOneRol(id, empresaId);
+  }
+
+  async obtenerUsuariosDelRol(id: string, empresaId: string, incluirInactivos = false) {
+    const whereClause: any = { rolId: id, empresaId };
+    if (!incluirInactivos) {
+      whereClause.activo = true;
+    }
+    return this.usuarioRepository.find({
+      where: whereClause,
+      select: ['id', 'nombre', 'email', 'activo']
+    });
+  }
+
+  async obtenerPermisosDelRol(id: string, empresaId: string) {
+    const rol = await this.findOneRol(id, empresaId);
+    return rol.permisos || [];
+  }
+
   async findAllRoles(filters?: {
     empresaId?: string;
     search?: string;

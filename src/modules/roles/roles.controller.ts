@@ -27,7 +27,7 @@ import { CreateRolDto } from './dto/create-rol.dto';
 import { UpdateRolDto, AsignarPermisosDto, AsignarUsuariosDto } from './dto/update-rol.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Permission } from '../../common/decorators/permissions.decorator';
+import { Permissions } from '../../common/decorators/permissions.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
@@ -63,7 +63,7 @@ export class RolesController {
     status: 403,
     description: 'No tiene permisos para crear roles'
   })
-  @Permission('roles:crear')
+  @Permissions('roles:crear')
   async create(
     @Body() createRolDto: CreateRolDto,
     @Request() req: any
@@ -139,19 +139,21 @@ export class RolesController {
     description: 'Dirección del ordenamiento',
     example: 'ASC'
   })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async findAll(
+    @Request() req: any,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 20,
     @Query('buscar') buscar?: string,
     @Query('esActivo') esActivo?: boolean,
     @Query('ordenarPor') ordenarPor?: string,
-    @Query('orden') orden?: 'ASC' | 'DESC',
-    @Request() req: any
+    @Query('orden') orden?: 'ASC' | 'DESC'
   ) {
     return this.rolesService.findAll(
       req.user.empresaId,
-      { buscar, esActivo, ordenarPor, orden },
+      buscar,
+      undefined, // nivel
+      esActivo,
       page,
       limit
     );
@@ -166,7 +168,7 @@ export class RolesController {
     status: 200,
     description: 'Roles disponibles obtenidos exitosamente'
   })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async findDisponibles(@Request() req: any) {
     return this.rolesService.findDisponibles(req.user.empresaId);
   }
@@ -180,7 +182,7 @@ export class RolesController {
     status: 200,
     description: 'Roles del sistema obtenidos exitosamente'
   })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async findRolesSistema() {
     return this.rolesService.findRolesSistema();
   }
@@ -206,7 +208,7 @@ export class RolesController {
       }
     }
   })
-  @Permission('roles:estadisticas')
+  @Permissions('roles:estadisticas')
   async obtenerEstadisticas(@Request() req: any) {
     return this.rolesService.obtenerEstadisticas(req.user.empresaId);
   }
@@ -249,7 +251,7 @@ export class RolesController {
     description: 'Rol no encontrado'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string, 
     @Request() req: any
@@ -275,7 +277,7 @@ export class RolesController {
     description: 'Datos de entrada inválidos'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:actualizar')
+  @Permissions('roles:actualizar')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateRolDto: UpdateRolDto,
@@ -303,7 +305,7 @@ export class RolesController {
     description: 'No se puede eliminar el rol (tiene usuarios asignados o es rol del sistema)'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:eliminar')
+  @Permissions('roles:eliminar')
   async remove(
     @Param('id', ParseUUIDPipe) id: string, 
     @Request() req: any
@@ -329,7 +331,7 @@ export class RolesController {
     description: 'Lista de permisos para asignar',
     type: AsignarPermisosDto
   })
-  @Permission('roles:asignar-permisos')
+  @Permissions('roles:asignar-permisos')
   async asignarPermisos(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() asignarPermisosDto: AsignarPermisosDto,
@@ -354,7 +356,7 @@ export class RolesController {
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
   @ApiParam({ name: 'permisoId', description: 'ID único del permiso', type: 'string' })
-  @Permission('roles:quitar-permisos')
+  @Permissions('roles:quitar-permisos')
   async quitarPermiso(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('permisoId', ParseUUIDPipe) permisoId: string,
@@ -381,7 +383,7 @@ export class RolesController {
     description: 'Lista de usuarios para asignar',
     type: AsignarUsuariosDto
   })
-  @Permission('roles:asignar-usuarios')
+  @Permissions('roles:asignar-usuarios')
   async asignarUsuarios(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() asignarUsuariosDto: AsignarUsuariosDto,
@@ -406,7 +408,7 @@ export class RolesController {
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
   @ApiParam({ name: 'usuarioId', description: 'ID único del usuario', type: 'string' })
-  @Permission('roles:quitar-usuarios')
+  @Permissions('roles:quitar-usuarios')
   async quitarUsuario(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('usuarioId', ParseUUIDPipe) usuarioId: string,
@@ -440,7 +442,7 @@ export class RolesController {
       required: ['nombre']
     }
   })
-  @Permission('roles:crear')
+  @Permissions('roles:crear')
   async clonar(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { nombre: string; descripcion?: string },
@@ -463,7 +465,7 @@ export class RolesController {
     description: 'Rol no encontrado'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:activar')
+  @Permissions('roles:activar')
   async activar(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any
@@ -489,7 +491,7 @@ export class RolesController {
     description: 'No se puede desactivar un rol del sistema'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:desactivar')
+  @Permissions('roles:desactivar')
   async desactivar(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any
@@ -518,7 +520,7 @@ export class RolesController {
     description: 'Incluir usuarios inactivos',
     example: false
   })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async obtenerUsuariosDelRol(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('incluirInactivos') incluirInactivos: boolean = false,
@@ -541,7 +543,7 @@ export class RolesController {
     description: 'Rol no encontrado'
   })
   @ApiParam({ name: 'id', description: 'ID único del rol', type: 'string' })
-  @Permission('roles:leer')
+  @Permissions('roles:leer')
   async obtenerPermisosDelRol(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any

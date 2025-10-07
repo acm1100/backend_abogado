@@ -29,7 +29,7 @@ import {
   AccionPasoDto,
   CondicionPasoDto
 } from './dto';
-import { FlujoTrabajo } from '../../entities/flujo_trabajo.entity';
+import { FlujoTrabajo, EstadoFlujo, TipoFlujo } from '../../entities/flujo_trabajo.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { Caso } from '../../entities/caso.entity';
 import { Gasto } from '../../entities/gasto.entity';
@@ -86,15 +86,21 @@ export class FlujosTrabajoService {
     // Validar usuarios y roles asignados
     await this.validarAsignaciones(createFlujoTrabajoDto, empresaId);
 
-    const flujo = this.flujoTrabajoRepository.create({
-      ...createFlujoTrabajoDto,
-      usuarioCreador: usuarioId,
-      empresaId,
-      estado: EstadoFlujoTrabajo.BORRADOR,
-      fechaCreacion: new Date(),
-      fechaActualizacion: new Date(),
-      version: createFlujoTrabajoDto.version || '1.0.0',
-    });
+    const flujo = new FlujoTrabajo();
+    flujo.nombre = createFlujoTrabajoDto.nombre;
+    flujo.descripcion = createFlujoTrabajoDto.descripcion;
+    flujo.tipo = createFlujoTrabajoDto.tipo as unknown as TipoFlujo;
+    flujo.pasos = createFlujoTrabajoDto.pasos;
+    flujo.triggers = createFlujoTrabajoDto.triggers;
+    flujo.configuracion = createFlujoTrabajoDto.configuracion;
+    flujo.prioridad = createFlujoTrabajoDto.prioridad || 1;
+    flujo.etiquetas = createFlujoTrabajoDto.etiquetas?.join(',');
+    flujo.administradores = createFlujoTrabajoDto.administradores;
+    flujo.usuarioCreador = usuarioId;
+    flujo.empresaId = empresaId;
+    flujo.estado = EstadoFlujo.EN_DESARROLLO;
+    flujo.activo = true;
+    flujo.version = 1;
 
     const flujoGuardado = await this.flujoTrabajoRepository.save(flujo);
 
@@ -199,13 +205,17 @@ export class FlujosTrabajoService {
 
     // Validar nueva estructura si se están actualizando pasos
     if (updateFlujoTrabajoDto.pasos) {
-      await this.validarPasosFlujo(updateFlujoTrabajoDto.pasos);
+      // Filtrar pasos con nombre definido para validación
+      const pasosCompletos = updateFlujoTrabajoDto.pasos.filter(p => p.nombre) as PasoFlujoDto[];
+      if (pasosCompletos.length > 0) {
+        await this.validarPasosFlujo(pasosCompletos);
+      }
     }
 
     // Incrementar versión si hay cambios estructurales
     let nuevaVersion = flujo.version;
     if (this.requiresVersionIncrement(updateFlujoTrabajoDto)) {
-      nuevaVersion = this.incrementarVersion(flujo.version);
+      nuevaVersion = flujo.version + 1;
     }
 
     Object.assign(flujo, updateFlujoTrabajoDto, {
@@ -251,7 +261,15 @@ export class FlujosTrabajoService {
     // Aplicar lógica específica según el nuevo estado
     await this.procesarCambioEstado(flujo, cambiarEstadoDto, usuarioId);
 
-    flujo.estado = cambiarEstadoDto.estado;
+    // Mapear estado del DTO al enum de la entidad
+    const estadoMap = {
+      'BORRADOR': EstadoFlujo.EN_DESARROLLO,
+      'ACTIVO': EstadoFlujo.ACTIVO,
+      'PAUSADO': EstadoFlujo.PAUSADO,
+      'INACTIVO': EstadoFlujo.INACTIVO,
+      'ARCHIVADO': EstadoFlujo.INACTIVO
+    };
+    flujo.estado = estadoMap[cambiarEstadoDto.estado] || EstadoFlujo.EN_DESARROLLO;
     flujo.fechaActualizacion = new Date();
 
     if (cambiarEstadoDto.fechaVigencia) {
@@ -286,7 +304,7 @@ export class FlujosTrabajoService {
     const flujo = await this.findOne(id, empresaId);
 
     // Validar que el flujo esté activo
-    if (flujo.estado !== EstadoFlujoTrabajo.ACTIVO) {
+    if (flujo.estado !== EstadoFlujo.ACTIVO) {
       throw new BadRequestException('Solo se pueden ejecutar flujos en estado ACTIVO');
     }
 
@@ -354,7 +372,7 @@ export class FlujosTrabajoService {
     const nuevoFlujo: CreateFlujoTrabajoDto = {
       nombre: duplicarDto.nuevoNombre,
       descripcion: duplicarDto.nuevaDescripcion || `Copia de: ${flujoOriginal.descripcion}`,
-      tipo: flujoOriginal.tipo,
+      tipo: flujoOriginal.tipo as any,
       pasos: this.filtrarPasos(flujoOriginal.pasos, duplicarDto.pasosExcluir),
       triggers: duplicarDto.copiarTriggers ? flujoOriginal.triggers : [],
       prioridad: flujoOriginal.prioridad,
@@ -389,8 +407,8 @@ export class FlujosTrabajoService {
 
     const estadisticas: EstadisticasFlujoDto = {
       totalFlujos: flujos.length,
-      flujosActivos: flujos.filter(f => f.estado === EstadoFlujoTrabajo.ACTIVO).length,
-      flujosPausados: flujos.filter(f => f.estado === EstadoFlujoTrabajo.PAUSADO).length,
+      flujosActivos: flujos.filter(f => f.estado === EstadoFlujo.ACTIVO).length,
+      flujosPausados: flujos.filter(f => f.estado === EstadoFlujo.PAUSADO).length,
       totalEjecuciones: flujos.reduce((sum, f) => sum + (f.ejecuciones?.length || 0), 0),
       ejecucionesCompletadas: 0,
       ejecucionesFallidas: 0,
@@ -453,7 +471,7 @@ export class FlujosTrabajoService {
     await this.validarPermisosEdicion(flujo, usuarioId);
 
     flujo.activo = false;
-    flujo.estado = EstadoFlujoTrabajo.ARCHIVADO;
+    flujo.estado = EstadoFlujo.INACTIVO;
     flujo.fechaActualizacion = new Date();
 
     await this.flujoTrabajoRepository.save(flujo);

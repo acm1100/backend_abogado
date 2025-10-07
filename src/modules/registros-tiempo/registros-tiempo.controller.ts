@@ -290,9 +290,9 @@ export class RegistrosTiempoController {
       casoId: registroOriginal.casoId,
       proyectoId: registroOriginal.proyectoId,
       fecha: copiarDto.nuevaFecha || new Date().toISOString().split('T')[0],
-      horaInicio: copiarDto.nuevaHoraInicio || registroOriginal.horaInicio,
-      horaFin: copiarDto.nuevaHoraFin || registroOriginal.horaFin,
-      descripcion: copiarDto.nuevaDescripcion || registroOriginal.descripcion,
+      horaInicio: copiarDto.camposModificar?.horaInicio || registroOriginal.horaInicio,
+      horaFin: copiarDto.camposModificar?.horaFin || registroOriginal.horaFin,
+      descripcion: copiarDto.camposModificar?.descripcion || registroOriginal.descripcion,
       tipo: registroOriginal.tipo,
       categoria: registroOriginal.categoria,
       configuracionFacturacion: registroOriginal.configuracionFacturacion
@@ -310,8 +310,18 @@ export class RegistrosTiempoController {
     @TenantId() empresaId: string
   ) {
     // Obtener registros según filtros
+    const filtros = {
+      fechaInicio: reporteDto.fechaInicio,
+      fechaFin: reporteDto.fechaFin,
+      clienteId: reporteDto.clienteId,
+      proyectoId: reporteDto.proyectoId,
+      estado: reporteDto.estado,
+      categoria: reporteDto.categoria,
+      soloFacturables: reporteDto.soloFacturables
+    };
+    
     const resultados = await this.registrosTiempoService.findAll(
-      reporteDto.filtros || {},
+      filtros,
       empresaId,
       1,
       10000 // Límite alto para reportes
@@ -320,17 +330,17 @@ export class RegistrosTiempoController {
     // Obtener estadísticas
     const estadisticas = await this.registrosTiempoService.getEstadisticas(
       empresaId,
-      reporteDto.filtros?.usuarioId,
-      reporteDto.filtros
+      undefined, // usuarioId no disponible en este DTO
+      filtros
     );
 
     return {
       metadatos: {
         fechaGeneracion: new Date(),
-        tipoReporte: reporteDto.tipoReporte,
+        tipoReporte: 'REGISTROS_TIEMPO',
         formato: reporteDto.formato,
         totalRegistros: resultados.total,
-        filtrosAplicados: reporteDto.filtros
+        filtrosAplicados: filtros
       },
       datos: {
         registros: resultados.data,

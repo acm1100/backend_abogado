@@ -100,7 +100,7 @@ export class ProyectosController {
     @Query('soloAtrasados') soloAtrasados?: boolean,
     @Query('soloVencimientos') soloVencimientos?: boolean,
     @Query('busqueda') busqueda?: string,
-    @Request() req
+    @Request() req?
   ) {
     const filtros: FiltrosProyecto = {
       clienteId,
@@ -141,7 +141,7 @@ export class ProyectosController {
   async getEstadisticas(
     @Query('fechaInicioDesde') fechaInicioDesde?: string,
     @Query('fechaInicioHasta') fechaInicioHasta?: string,
-    @Request() req
+    @Request() req?
   ) {
     const filtros: Partial<FiltrosProyecto> = {
       fechaInicioDesde,

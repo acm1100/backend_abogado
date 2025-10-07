@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Repository,
+  Not,
   FindManyOptions,
   Like,
   Between,
@@ -15,7 +16,7 @@ import {
   SelectQueryBuilder,
 } from 'typeorm';
 import { Caso, EstadoCaso, PrioridadCaso } from '../../entities/caso.entity';
-import { Cliente } from '../../entities/cliente.entity';
+import { Cliente, EstadoCliente } from '../../entities/cliente.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { CreateCasoDto } from './dto/create-caso.dto';
 import { UpdateCasoDto } from './dto/update-caso.dto';
@@ -45,7 +46,7 @@ export class CasosService {
       where: {
         id: createCasoDto.clienteId,
         empresaId,
-        activo: true,
+        estado: EstadoCliente.ACTIVO,
       },
     });
 
@@ -97,7 +98,6 @@ export class CasosService {
       ...createCasoDto,
       empresaId,
       codigoInterno,
-      usuarioCreadorId,
       usuarioId: createCasoDto.usuarioId || usuarioCreadorId,
       estado: createCasoDto.estado || EstadoCaso.ABIERTO,
       fechaCreacion: new Date(),
@@ -216,7 +216,7 @@ export class CasosService {
         where: {
           id: updateCasoDto.clienteId,
           empresaId,
-          activo: true,
+          estado: EstadoCliente.ACTIVO,
         },
       });
 
@@ -271,7 +271,7 @@ export class CasosService {
     // Registrar cambio de estado si aplica
     if (updateCasoDto.estado && updateCasoDto.estado !== caso.estado) {
       // Aquí se podría crear un registro de historial de estados
-      caso.fechaUltimaActualizacion = new Date();
+      caso.fechaActualizacion = new Date();
     }
 
     Object.assign(caso, updateCasoDto);

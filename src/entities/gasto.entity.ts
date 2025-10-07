@@ -6,6 +6,7 @@ import { Caso } from './caso.entity';
 import { Empresa } from './empresa.entity';
 
 export enum TipoGasto {
+  OPERATIVO = 'operativo',
   MATERIAL_OFICINA = 'material_oficina',
   TRANSPORTE = 'transporte',
   COMUNICACIONES = 'comunicaciones',
@@ -22,6 +23,7 @@ export enum TipoGasto {
 
 export enum EstadoGasto {
   BORRADOR = 'borrador',
+  PENDIENTE = 'pendiente',
   PENDIENTE_APROBACION = 'pendiente_aprobacion',
   APROBADO = 'aprobado',
   RECHAZADO = 'rechazado',
@@ -58,6 +60,20 @@ export enum MetodoPago {
   OTROS = 'otros'
 }
 
+export enum CategoriaGasto {
+  OPERATIVO = 'operativo',
+  ADMINISTRATIVO = 'administrativo',
+  LEGAL = 'legal',
+  MARKETING = 'marketing',
+  TECNOLOGIA = 'tecnologia',
+  RECURSOS_HUMANOS = 'recursos_humanos',
+  MATERIALES_OFICINA = 'materiales_oficina',
+  OTROS = 'otros'
+}
+
+// Alias para compatibilidad
+export const MetodoPagoGasto = MetodoPago;
+
 @Entity('gastos')
 @Index(['empresaId', 'fecha'])
 @Index(['empresaId', 'tipo'])
@@ -79,6 +95,13 @@ export class Gasto extends BaseEntity {
     default: TipoGasto.OTROS
   })
   tipo: TipoGasto;
+
+  @Column({
+    type: 'enum',
+    enum: CategoriaGasto,
+    default: CategoriaGasto.OTROS
+  })
+  categoria: CategoriaGasto;
 
   @Column({
     type: 'enum',

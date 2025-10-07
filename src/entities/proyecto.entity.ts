@@ -6,6 +6,14 @@ import { Caso } from './caso.entity';
 import { Empresa } from './empresa.entity';
 
 export enum TipoProyecto {
+  CONSULTORIA_LEGAL = 'consultoria_legal',
+  PROCESO_JUDICIAL = 'proceso_judicial',
+  TRANSACCION_COMERCIAL = 'transaccion_comercial',
+  FUSION_ADQUISICION = 'fusion_adquisicion',
+  PROPIEDAD_INTELECTUAL = 'propiedad_intelectual',
+  REGULATORIO = 'regulatorio',
+  INTERNACIONAL = 'internacional',
+  INVESTIGACION_LEGAL = 'investigacion_legal',
   CONSULTORIA = 'consultoria',
   LITIGIO = 'litigio',
   TRANSACCIONAL = 'transaccional',
@@ -26,6 +34,7 @@ export enum EstadoProyecto {
   PAUSADO = 'pausado',
   COMPLETADO = 'completado',
   CANCELADO = 'cancelado',
+  CERRADO = 'cerrado',
   FACTURADO = 'facturado'
 }
 
@@ -192,6 +201,64 @@ export class Proyecto extends BaseEntity {
   @Column({ type: 'json', nullable: true })
   metadatos?: any;
 
+  // Campos adicionales de seguimiento y gestión
+  @Column({ name: 'actualizado_por', nullable: true })
+  actualizadoPor?: string;
+
+  @Column({ type: 'date', nullable: true })
+  fechaInicioReal?: Date;
+
+  @Column({ type: 'date', nullable: true })
+  fechaFinReal?: Date;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  porcentajeAvance: number;
+
+  @Column({ type: 'date', nullable: true })
+  fechaPausa?: Date;
+
+  @Column({ type: 'date', nullable: true })
+  fechaCancelacion?: Date;
+
+  @Column({ type: 'json', nullable: true })
+  recursos?: any[];
+
+  @Column({ type: 'json', nullable: true })
+  presupuesto?: any;
+
+  @Column({ type: 'int', nullable: true })
+  horasPresupuestadas?: number;
+
+  @Column({ type: 'int', default: 0 })
+  horasEjecutadas: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  costosIncurridos: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  ingresosGenerados: number;
+
+  @Column({ type: 'json', nullable: true })
+  reportesAvance?: any[];
+
+  @Column({ type: 'json', nullable: true })
+  datosCierre?: any;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  margenReal?: number;
+
+  @Column({ type: 'boolean', default: true })
+  activo: boolean;
+
+  @Column({ type: 'date', nullable: true })
+  fechaEliminacion?: Date;
+
+  @Column({ name: 'eliminado_por', nullable: true })
+  eliminadoPor?: string;
+
+  @Column({ type: 'date', nullable: true })
+  fechaFinEstimada?: Date;
+
   // Campos de seguimiento
   @Column({ type: 'date', nullable: true })
   fechaUltimaActividad?: Date;
@@ -223,6 +290,13 @@ export class Proyecto extends BaseEntity {
   @Column({ name: 'cliente_id' })
   clienteId: string;
 
+  @ManyToOne(() => Caso, { nullable: true })
+  @JoinColumn({ name: 'caso_id' })
+  caso: Caso;
+
+  @Column({ name: 'caso_id', nullable: true })
+  casoId: string;
+
   @ManyToOne(() => Usuario, { nullable: false })
   @JoinColumn({ name: 'responsable_id' })
   responsable: Usuario;
@@ -252,8 +326,9 @@ export class Proyecto extends BaseEntity {
   })
   miembros: Usuario[];
 
-  @OneToMany(() => Caso, caso => caso.proyecto)
-  casos: Caso[];
+  // Relación comentada temporalmente - la entidad Caso tiene proyectos, no proyecto
+  // @OneToMany(() => Caso, caso => caso.proyecto)
+  // casos: Caso[];
 
   @OneToMany(() => TareaProyecto, tarea => tarea.proyecto, {
     cascade: true,

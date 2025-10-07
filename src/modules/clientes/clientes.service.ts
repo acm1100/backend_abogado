@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner, Like } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 
-import { Cliente, TipoCliente, TipoDocumento } from '../../entities/cliente.entity';
+import { Cliente, TipoCliente, TipoDocumento, EstadoCliente } from '../../entities/cliente.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -67,14 +67,19 @@ export class ClientesService {
 
       // Crear cliente
       const cliente = this.clienteRepository.create({
-        ...createClienteDto,
         empresaId,
+        tipoCliente: createClienteDto.tipo,
+        nombres: createClienteDto.nombres,
+        apellidos: createClienteDto.apellidos,
+        razonSocial: createClienteDto.razonSocial,
+        email: createClienteDto.email,
+        telefono: createClienteDto.telefono,
+        tipoDocumento: createClienteDto.tipoDocumento,
+        numeroDocumento: createClienteDto.numeroDocumento,
+        direccion: createClienteDto.direccion ? `${createClienteDto.direccion.direccion}, ${createClienteDto.direccion.distrito}` : undefined,
         nombreCompleto: this.buildNombreCompleto(createClienteDto),
         activo: createClienteDto.activo ?? true,
-        estado: 'ACTIVO',
-        fechaCreacion: new Date(),
-        fechaActualizacion: new Date(),
-        fechaUltimoContacto: new Date(),
+        estado: EstadoCliente.ACTIVO,
         configuracion: {
           notificaciones: {
             email: true,
@@ -88,11 +93,6 @@ export class ClientesService {
           },
           ...createClienteDto.configuracion,
         },
-        // Estadísticas iniciales
-        totalCasos: 0,
-        casosActivos: 0,
-        totalFacturado: 0,
-        ultimoMontoFacturado: 0,
       });
 
       const savedCliente = await queryRunner.manager.save(cliente);
@@ -260,7 +260,7 @@ export class ClientesService {
       if (updateClienteDto.tipoDocumento) {
         this.validateDocumento(updateClienteDto.tipoDocumento, updateClienteDto.numeroDocumento);
       } else {
-        this.validateDocumento(cliente.tipoDocumento, updateClienteDto.numeroDocumento);
+        this.validateDocumento(cliente.tipoDocumento as TipoDocumento, updateClienteDto.numeroDocumento);
       }
 
       const existingCliente = await this.clienteRepository.findOne({
@@ -284,7 +284,7 @@ export class ClientesService {
       cliente.nombreCompleto = this.buildNombreCompleto({
         nombres: updateClienteDto.nombres || cliente.nombres,
         apellidos: updateClienteDto.apellidos || cliente.apellidos,
-        tipo: cliente.tipo,
+        tipo: cliente.tipoCliente,
       });
     }
 
@@ -310,7 +310,7 @@ export class ClientesService {
     const cliente = await this.findOne(id);
     
     cliente.activo = !cliente.activo;
-    cliente.estado = cliente.activo ? 'ACTIVO' : 'INACTIVO';
+    cliente.estado = cliente.activo ? EstadoCliente.ACTIVO : EstadoCliente.INACTIVO;
     cliente.fechaActualizacion = new Date();
 
     const updatedCliente = await this.clienteRepository.save(cliente);

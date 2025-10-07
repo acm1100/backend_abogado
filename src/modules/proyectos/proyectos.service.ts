@@ -16,7 +16,7 @@ import {
   ReportarAvanceDto,
   CerrarProyectoDto
 } from './dto/update-proyecto.dto';
-import { Proyecto } from '../../entities/proyecto.entity';
+import { Proyecto, HitoProyecto } from '../../entities/proyecto.entity';
 import { Cliente } from '../../entities/cliente.entity';
 import { Caso } from '../../entities/caso.entity';
 import { Usuario } from '../../entities/usuario.entity';
@@ -104,16 +104,17 @@ export class ProyectosService {
       }
     }
 
-    // Validar responsable principal
-    const responsable = await this.usuarioRepository.findOne({
+    // Validar responsable principal (usar el primer recurso)
+    const responsablePrincipalId = createProyectoDto.recursos?.[0]?.usuarioId;
+    const responsable = responsablePrincipalId ? await this.usuarioRepository.findOne({
       where: { 
-        id: createProyectoDto.responsablePrincipalId,
+        id: responsablePrincipalId,
         empresaId: empresaId,
         activo: true
       }
-    });
+    }) : null;
 
-    if (!responsable) {
+    if (responsablePrincipalId && !responsable) {
       throw new NotFoundException('Responsable principal no encontrado o no pertenece a la empresa');
     }
 
@@ -144,14 +145,19 @@ export class ProyectosService {
 
     // Crear el proyecto
     const proyecto = this.proyectoRepository.create({
-      ...createProyectoDto,
+      nombre: createProyectoDto.nombre,
+      descripcion: createProyectoDto.descripcion,
       codigo: codigoProyecto,
       empresaId: empresaId,
+      clienteId: createProyectoDto.clienteId,
+      casoId: createProyectoDto.casoId,
+      tipo: createProyectoDto.tipo,
+      prioridad: createProyectoDto.prioridad,
       fechaInicio: fechaInicio,
       fechaFinEstimada: fechaFinEstimada,
+      responsableId: responsablePrincipalId,
       estado: createProyectoDto.estado || EstadoProyecto.PLANIFICACION,
-      creadoPor: usuarioId,
-      fechaCreacion: new Date(),
+      creadoPorId: usuarioId,
       porcentajeAvance: 0,
       // Inicializar métricas
       horasPresupuestadas: this.calcularHorasPresupuestadas(createProyectoDto),
@@ -466,14 +472,16 @@ export class ProyectosService {
 
     switch (actualizarHitoDto.operacion) {
       case 'CREAR':
-        const nuevoHito = {
-          ...actualizarHitoDto.datosHito,
-          id: this.generarIdHito(),
-          fechaCreacion: new Date().toISOString(),
-          creadoPor: usuarioId,
-          completado: false,
-          porcentajeAvance: 0
-        };
+        const nuevoHito = new HitoProyecto();
+        nuevoHito.nombre = actualizarHitoDto.datosHito.nombre;
+        nuevoHito.descripcion = actualizarHitoDto.datosHito.descripcion;
+        nuevoHito.fecha = new Date(actualizarHitoDto.datosHito.fechaProgramada || new Date());
+        nuevoHito.esCompletado = false;
+        nuevoHito.criteriosCompletitud = actualizarHitoDto.datosHito.dependencias;
+        nuevoHito.entregables = actualizarHitoDto.datosHito.entregables;
+        // Los observaciones se manejan de forma opcional
+        nuevoHito.proyectoId = proyecto.id;
+        nuevoHito.creadoPorId = usuarioId;
         proyecto.hitos.push(nuevoHito);
         break;
 
@@ -482,9 +490,16 @@ export class ProyectosService {
         if (hitoIndex === -1) {
           throw new NotFoundException('Hito no encontrado');
         }
-        Object.assign(proyecto.hitos[hitoIndex], actualizarHitoDto.datosHito);
-        proyecto.hitos[hitoIndex].fechaActualizacion = new Date().toISOString();
-        proyecto.hitos[hitoIndex].actualizadoPor = usuarioId;
+        // Actualizar campos específicos del hito
+        if (actualizarHitoDto.datosHito.nombre) {
+          proyecto.hitos[hitoIndex].nombre = actualizarHitoDto.datosHito.nombre;
+        }
+        if (actualizarHitoDto.datosHito.descripcion) {
+          proyecto.hitos[hitoIndex].descripcion = actualizarHitoDto.datosHito.descripcion;
+        }
+        if (actualizarHitoDto.datosHito.fechaProgramada) {
+          proyecto.hitos[hitoIndex].fecha = new Date(actualizarHitoDto.datosHito.fechaProgramada);
+        }
         break;
 
       case 'COMPLETAR':
@@ -492,10 +507,8 @@ export class ProyectosService {
         if (!hitoCompletar) {
           throw new NotFoundException('Hito no encontrado');
         }
-        hitoCompletar.completado = true;
-        hitoCompletar.porcentajeAvance = 100;
-        hitoCompletar.fechaCompletado = new Date().toISOString();
-        hitoCompletar.completadoPor = usuarioId;
+        hitoCompletar.esCompletado = true;
+        hitoCompletar.fechaCompletado = new Date();
         break;
 
       case 'ELIMINAR':
@@ -846,7 +859,7 @@ export class ProyectosService {
       [TipoProyecto.CORPORATIVO]: 'CORP',
       [TipoProyecto.INTERNACIONAL]: 'INT',
       [TipoProyecto.INVESTIGACION_LEGAL]: 'INV',
-      [TipoProyecto.OTRO]: 'OTR'
+      [TipoProyecto.OTROS]: 'OTR'
     };
 
     return prefijos[tipo] || 'PRY';
@@ -867,7 +880,7 @@ export class ProyectosService {
       [TipoProyecto.CORPORATIVO]: 60,
       [TipoProyecto.INTERNACIONAL]: 180,
       [TipoProyecto.INVESTIGACION_LEGAL]: 45,
-      [TipoProyecto.OTRO]: 60
+      [TipoProyecto.OTROS]: 60
     };
 
     const dias = duracionesEstimadas[tipo] || 60;
@@ -912,6 +925,12 @@ export class ProyectosService {
       ],
       [EstadoProyecto.EN_PROGRESO]: [
         EstadoProyecto.PAUSADO,
+        EstadoProyecto.EN_REVISION,
+        EstadoProyecto.COMPLETADO,
+        EstadoProyecto.CANCELADO
+      ],
+      [EstadoProyecto.EN_REVISION]: [
+        EstadoProyecto.EN_PROGRESO,
         EstadoProyecto.COMPLETADO,
         EstadoProyecto.CANCELADO
       ],
@@ -920,6 +939,10 @@ export class ProyectosService {
         EstadoProyecto.CANCELADO
       ],
       [EstadoProyecto.COMPLETADO]: [
+        EstadoProyecto.CERRADO,
+        EstadoProyecto.FACTURADO
+      ],
+      [EstadoProyecto.FACTURADO]: [
         EstadoProyecto.CERRADO
       ],
       [EstadoProyecto.CANCELADO]: [],
@@ -940,7 +963,7 @@ export class ProyectosService {
       return proyecto.porcentajeAvance || 0;
     }
 
-    const hitosCompletados = proyecto.hitos.filter(h => h.completado).length;
+    const hitosCompletados = proyecto.hitos.filter(h => h.esCompletado).length;
     const totalHitos = proyecto.hitos.length;
     
     return Math.round((hitosCompletados / totalHitos) * 100);

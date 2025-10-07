@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThanOrEqual, LessThanOrEqual, In } from 'typeorm';
 import { CreateEventoDto, UpdateEventoDto, FiltrosAgendaDto } from './dto';
-import { Evento } from '../../entities/evento.entity';
+import { Evento, EstadoEvento } from '../../entities/evento.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { Caso } from '../../entities/caso.entity';
 import { Cliente } from '../../entities/cliente.entity';
@@ -32,7 +32,7 @@ export class AgendaService {
         where: {
           id: createEventoDto.responsableId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -47,7 +47,7 @@ export class AgendaService {
         where: {
           id: createEventoDto.casoId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -62,7 +62,7 @@ export class AgendaService {
         where: {
           id: createEventoDto.clienteId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -153,7 +153,7 @@ export class AgendaService {
         where: {
           id: updateEventoDto.responsableId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -167,7 +167,7 @@ export class AgendaService {
         where: {
           id: updateEventoDto.casoId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -181,7 +181,7 @@ export class AgendaService {
         where: {
           id: updateEventoDto.clienteId,
           empresaId,
-          esActivo: true,
+          activo: true,
         },
       });
 
@@ -196,7 +196,7 @@ export class AgendaService {
 
   async remove(id: string, empresaId: string): Promise<void> {
     const evento = await this.findOne(id, empresaId);
-    evento.esActivo = false;
+    evento.activo = false;
     await this.eventoRepository.save(evento);
   }
 
@@ -211,7 +211,7 @@ export class AgendaService {
       where: {
         empresaId,
         fechaInicio: Between(inicioDelDia, finDelDia),
-        esActivo: true,
+        activo: true,
       },
       relations: ['responsable', 'caso', 'cliente'],
       order: { fechaInicio: 'ASC' },
@@ -227,7 +227,7 @@ export class AgendaService {
       where: {
         empresaId,
         fechaInicio: Between(ahora, fechaLimite),
-        esActivo: true,
+        activo: true,
       },
       relations: ['responsable', 'caso', 'cliente'],
       order: { fechaInicio: 'ASC' },
@@ -239,7 +239,7 @@ export class AgendaService {
       where: {
         responsableId: usuarioId,
         empresaId,
-        esActivo: true,
+        activo: true,
       },
       relations: ['caso', 'cliente'],
       order: { fechaInicio: 'ASC' },
@@ -248,7 +248,7 @@ export class AgendaService {
 
   async marcarComoCompletado(id: string, empresaId: string): Promise<Evento> {
     const evento = await this.findOne(id, empresaId);
-    evento.estado = 'completado';
+    evento.estado = EstadoEvento.COMPLETADO;
     evento.fechaFinalizacion = new Date();
     return this.eventoRepository.save(evento);
   }
@@ -286,16 +286,16 @@ export class AgendaService {
       where: {
         empresaId,
         fechaInicio: Between(inicioSemana, finSemana),
-        esActivo: true,
+        activo: true,
       },
       relations: ['responsable'],
     });
 
     const resumen = {
       totalEventos: eventos.length,
-      completados: eventos.filter(e => e.estado === 'completado').length,
-      pendientes: eventos.filter(e => e.estado === 'pendiente').length,
-      cancelados: eventos.filter(e => e.estado === 'cancelado').length,
+      completados: eventos.filter(e => e.estado === EstadoEvento.COMPLETADO).length,
+      pendientes: eventos.filter(e => e.estado === EstadoEvento.PENDIENTE).length,
+      cancelados: eventos.filter(e => e.estado === EstadoEvento.CANCELADO).length,
       porTipo: {},
       porResponsable: {},
     };
@@ -311,7 +311,7 @@ export class AgendaService {
     // Agrupar por responsable
     eventos.forEach(evento => {
       if (evento.responsable) {
-        const nombreCompleto = `${evento.responsable.nombres} ${evento.responsable.apellidos}`;
+        const nombreCompleto = `${evento.responsable.nombre} ${evento.responsable.apellidos}`;
         if (!resumen.porResponsable[nombreCompleto]) {
           resumen.porResponsable[nombreCompleto] = 0;
         }

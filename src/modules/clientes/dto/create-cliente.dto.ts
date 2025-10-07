@@ -204,6 +204,16 @@ export class CreateClienteDto {
   nombres: string;
 
   @ApiPropertyOptional({
+    description: 'Razón Social (para empresas)',
+    example: 'Empresa SAC',
+    maxLength: 200,
+  })
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  razonSocial?: string;
+
+  @ApiPropertyOptional({
     description: 'Apellidos (solo para persona natural)',
     example: 'Pérez García',
     minLength: 2,

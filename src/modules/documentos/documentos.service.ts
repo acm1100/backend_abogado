@@ -139,40 +139,37 @@ export class DocumentosService {
 
     // Crear el documento
     const documento = this.documentosRepository.create({
-      ...createDocumentoDto,
+      titulo: createDocumentoDto.nombre,
+      descripcion: createDocumentoDto.descripcion,
+      tipo: createDocumentoDto.tipo,
+      categoria: createDocumentoDto.categoria,
+      nombreArchivo: createDocumentoDto.nombreArchivo,
       empresaId,
       codigoInterno,
       usuarioCreadorId,
-      hash,
       rutaArchivo: rutaFinal,
       estado: createDocumentoDto.estado || EstadoDocumento.BORRADOR,
-      fechaCreacion: new Date(),
       fechaModificacion: new Date(),
       version: 1,
+      clienteId: createDocumentoDto.clienteId,
+      casoId: createDocumentoDto.casoId,
+      proyectoId: createDocumentoDto.proyectoId,
       configuracion: {
         requiereFirma: false,
         esPlantilla: false,
         permiteVersionado: true,
-        retencionDias: 0,
-        requiereAprobacion: false,
         acceso: {
           publico: false,
           equipoAsignado: [usuarioCreadorId],
-          rolesPermitidos: [],
-          clientesPermitidos: [],
         },
-        ...createDocumentoDto.configuracion,
       },
-      metadatos: {
-        idioma: 'es',
-        ...createDocumentoDto.metadatos,
-      },
+      metadatos: createDocumentoDto.metadatos as any || {},
     });
 
     const documentoGuardado = await this.documentosRepository.save(documento);
 
-    // Retornar el documento con relaciones
-    return this.findOne(documentoGuardado.id, empresaId);
+    // Retornar el documento con relaciones  
+    return this.findOne((documentoGuardado as any).id, empresaId);
   }
 
   /**
@@ -359,13 +356,22 @@ export class DocumentosService {
     }
 
     // Crear nueva versión basada en el original
-    const nuevaVersion = {
-      ...documentoOriginal,
-      ...updateData,
-      id: undefined,
-      version: documentoOriginal.version + 1,
-      documentoPadreId: documentoOriginal.id,
+    const nuevaVersion: CreateDocumentoDto = {
+      nombre: documentoOriginal.titulo,
+      descripcion: documentoOriginal.descripcion,
+      tipo: documentoOriginal.tipo,
+      categoria: documentoOriginal.categoria,
+      nombreArchivo: documentoOriginal.nombreArchivo,
+      tipoMime: documentoOriginal.tipoMime,
+      tamano: documentoOriginal.tamanoArchivo,
+      hash: documentoOriginal.hashArchivo,
+      rutaArchivo: documentoOriginal.rutaArchivo,
+      clienteId: documentoOriginal.clienteId,
+      casoId: documentoOriginal.casoId,
+      proyectoId: documentoOriginal.proyectoId,
       estado: EstadoDocumento.BORRADOR,
+      metadatos: documentoOriginal.metadatos as any,
+      ...updateData
     };
 
     return this.create(nuevaVersion, empresaId, usuarioId, archivo);

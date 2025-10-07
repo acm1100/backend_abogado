@@ -13,15 +13,28 @@ import { Empresa } from './empresa.entity';
 import { Cliente } from './cliente.entity';
 import { Usuario } from './usuario.entity';
 import { Proyecto } from './proyecto.entity';
-import { RegistroTiempo } from './registro-tiempo.entity';
-import { Documento } from './documento.entity';
-import { EventoAgenda } from './evento-agenda.entity';
+// Referencias dinámicas para evitar dependencias circulares
 
 export enum EstadoCaso {
+  ABIERTO = 'abierto',
   ACTIVO = 'activo',
+  EN_PROCESO = 'en_proceso',
   PAUSADO = 'pausado',
   CERRADO = 'cerrado',
+  RESUELTO = 'resuelto',
   ARCHIVADO = 'archivado',
+}
+
+export enum TipoCaso {
+  CIVIL = 'civil',
+  PENAL = 'penal',
+  LABORAL = 'laboral',
+  COMERCIAL = 'comercial',
+  ADMINISTRATIVO = 'administrativo',
+  CONSTITUCIONAL = 'constitucional',
+  FAMILIAR = 'familiar',
+  TRIBUTARIO = 'tributario',
+  OTROS = 'otros',
 }
 
 export enum PrioridadCaso {
@@ -118,28 +131,28 @@ export class Caso extends BaseEntity {
 
   @ApiProperty({
     description: 'Tipo de caso legal',
-    example: 'civil',
-    enum: ['civil', 'penal', 'laboral', 'comercial', 'constitucional', 'administrativo', 'tributario', 'familia'],
+    enum: TipoCaso,
+    example: TipoCaso.CIVIL,
   })
   @Column({
     name: 'tipo_caso',
-    type: 'varchar',
-    length: 100,
+    type: 'enum',
+    enum: TipoCaso,
     nullable: true,
     comment: 'Tipo de caso: civil, penal, laboral, comercial, etc.',
   })
-  tipoCaso?: string;
+  tipoCaso?: TipoCaso;
 
   @ApiProperty({
     description: 'Estado actual del caso',
     enum: EstadoCaso,
-    example: EstadoCaso.ACTIVO,
+    example: EstadoCaso.ABIERTO,
   })
   @Column({
     name: 'estado',
     type: 'enum',
     enum: EstadoCaso,
-    default: EstadoCaso.ACTIVO,
+    default: EstadoCaso.ABIERTO,
     comment: 'Estado actual del caso',
   })
   estado: EstadoCaso;
@@ -332,6 +345,66 @@ export class Caso extends BaseEntity {
   })
   cronologia: any[];
 
+  @ApiProperty({
+    description: 'ID del usuario asignado al caso',
+    format: 'uuid',
+    required: false,
+  })
+  @Column({
+    name: 'usuario_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  usuarioId?: string;
+
+  @ApiProperty({
+    description: 'Indica si el caso está activo',
+    example: true,
+  })
+  @Column({
+    name: 'activo',
+    type: 'boolean',
+    default: true,
+  })
+  activo: boolean;
+
+  @ApiProperty({
+    description: 'Fecha límite del caso',
+    type: 'string',
+    format: 'date',
+    required: false,
+  })
+  @Column({
+    name: 'fecha_limite',
+    type: 'date',
+    nullable: true,
+  })
+  fechaLimite?: Date;
+
+  @ApiProperty({
+    description: 'Código interno del caso',
+    example: 'CAS-2024-001',
+    required: false,
+  })
+  @Column({
+    name: 'codigo_interno',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  codigoInterno?: string;
+
+  @ApiProperty({
+    description: 'Configuración específica del caso',
+    required: false,
+  })
+  @Column({
+    name: 'configuracion',
+    type: 'jsonb',
+    nullable: true,
+  })
+  configuracion?: any;
+
   // ===============================================
   // RELACIONES
   // ===============================================
@@ -377,24 +450,24 @@ export class Caso extends BaseEntity {
 
   @ApiProperty({
     description: 'Registros de tiempo del caso',
-    type: () => [RegistroTiempo],
+    type: () => Array,
   })
-  @OneToMany(() => RegistroTiempo, (registro) => registro.caso)
-  registrosTiempo: RegistroTiempo[];
+  @OneToMany('RegistroTiempo', 'caso')
+  registrosTiempo: any[];
 
   @ApiProperty({
     description: 'Documentos del caso',
-    type: () => [Documento],
+    type: () => Array,
   })
-  @OneToMany(() => Documento, (documento) => documento.caso)
-  documentos: Documento[];
+  @OneToMany('Documento', 'caso')
+  documentos: any[];
 
   @ApiProperty({
     description: 'Eventos de agenda relacionados',
-    type: () => [EventoAgenda],
+    type: () => Array,
   })
-  @OneToMany(() => EventoAgenda, (evento) => evento.caso)
-  eventos: EventoAgenda[];
+  @OneToMany('EventoAgenda', 'caso')
+  eventos: any[];
 
   // ===============================================
   // MÉTODOS DE UTILIDAD
@@ -404,7 +477,7 @@ export class Caso extends BaseEntity {
    * Verifica si el caso está activo
    */
   get estaActivo(): boolean {
-    return this.estado === EstadoCaso.ACTIVO;
+    return this.activo && (this.estado === EstadoCaso.ABIERTO || this.estado === EstadoCaso.EN_PROCESO);
   }
 
   /**
@@ -522,9 +595,12 @@ export class Caso extends BaseEntity {
    */
   get estadoDisplay(): string {
     const estados = {
+      [EstadoCaso.ABIERTO]: 'Abierto',
       [EstadoCaso.ACTIVO]: 'Activo',
+      [EstadoCaso.EN_PROCESO]: 'En Proceso',
       [EstadoCaso.PAUSADO]: 'Pausado',
       [EstadoCaso.CERRADO]: 'Cerrado',
+      [EstadoCaso.RESUELTO]: 'Resuelto',
       [EstadoCaso.ARCHIVADO]: 'Archivado',
     };
     

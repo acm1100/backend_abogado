@@ -99,7 +99,7 @@ export class NotificacionesController {
     @Query('clienteId') clienteId?: string,
     @Query('soloNoLeidas') soloNoLeidas?: boolean,
     @Query('soloExpiran') soloExpiran?: boolean,
-    @Request() req: any
+    @Request() req?: any
   ) {
     const filtros: FiltrosNotificaciones = {
       estado: Array.isArray(estado) ? estado : estado ? [estado] : undefined,
@@ -136,7 +136,7 @@ export class NotificacionesController {
   async obtenerEstadisticas(
     @Query('fechaDesde') fechaDesde?: string,
     @Query('fechaHasta') fechaHasta?: string,
-    @Request() req: any
+    @Request() req?: any
   ) {
     return this.notificacionesService.obtenerEstadisticas(
       req.user.empresaId,

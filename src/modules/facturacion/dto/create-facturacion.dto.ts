@@ -17,13 +17,11 @@ import {
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { 
-  TipoFacturacion, 
-  EstadoFacturacion, 
-  MetodoPago 
-} from '../../../entities/facturacion.entity';
-
-export class DetalleFacturacionDto {
+import {
+  TipoFactura,
+  EstadoFactura,
+  MetodoPago
+} from '../../../entities/facturacion.entity';export class DetalleFacturacionDto {
   @ApiProperty({
     description: 'Descripción del servicio o concepto',
     example: 'Consulta legal - Derecho Civil',
@@ -166,13 +164,13 @@ export class DatosReceptorDto {
 export class CreateFacturacionDto {
   @ApiProperty({
     description: 'Tipo de comprobante',
-    enum: TipoFacturacion,
-    example: TipoFacturacion.FACTURA,
+    enum: TipoFactura,
+    example: TipoFactura.FACTURA,
   })
-  @IsEnum(TipoFacturacion, {
+  @IsEnum(TipoFactura, {
     message: 'Tipo de facturación no válido',
   })
-  tipo: TipoFacturacion;
+  tipo: TipoFactura;
 
   @ApiProperty({
     description: 'ID del cliente al que se factura',
@@ -269,7 +267,7 @@ export class CreateFacturacionDto {
   @ApiPropertyOptional({
     description: 'Método de pago preferido',
     enum: MetodoPago,
-    example: MetodoPago.TRANSFERENCIA_BANCARIA,
+    example: MetodoPago.TRANSFERENCIA,
   })
   @IsOptional()
   @IsEnum(MetodoPago)
@@ -301,13 +299,13 @@ export class CreateFacturacionDto {
 
   @ApiPropertyOptional({
     description: 'Estado inicial de la factura',
-    enum: EstadoFacturacion,
-    example: EstadoFacturacion.BORRADOR,
-    default: EstadoFacturacion.BORRADOR,
+    enum: EstadoFactura,
+    example: EstadoFactura.BORRADOR,
+    default: EstadoFactura.BORRADOR,
   })
   @IsOptional()
-  @IsEnum(EstadoFacturacion)
-  estado?: EstadoFacturacion = EstadoFacturacion.BORRADOR;
+  @IsEnum(EstadoFactura)
+  estado?: EstadoFactura = EstadoFactura.BORRADOR;
 
   @ApiPropertyOptional({
     description: 'Si debe enviarse automáticamente por email',

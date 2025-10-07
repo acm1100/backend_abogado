@@ -97,7 +97,7 @@ export class ReportesController {
     @Query('soloPublicos') soloPublicos?: boolean,
     @Query('soloPersonales') soloPersonales?: boolean,
     @Query('buscar') buscar?: string,
-    @Request() req: any
+    @Request() req?: any
   ) {
     const filtros: FiltrosReportes = {
       tipo: Array.isArray(tipo) ? tipo : tipo ? [tipo] : undefined,

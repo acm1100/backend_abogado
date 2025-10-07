@@ -20,7 +20,7 @@ import {
   TipoGasto, 
   EstadoGasto, 
   CategoriaGasto,
-  MetodoPagoGasto 
+  MetodoPago
 } from '../../../entities/gasto.entity';
 
 export class ComprobanteGastoDto {
@@ -241,13 +241,13 @@ export class CreateGastoDto {
 
   @ApiProperty({
     description: 'Método de pago utilizado',
-    enum: MetodoPagoGasto,
-    example: MetodoPagoGasto.EFECTIVO,
+    enum: MetodoPago,
+    example: MetodoPago.EFECTIVO,
   })
-  @IsEnum(MetodoPagoGasto, {
+  @IsEnum(MetodoPago, {
     message: 'Método de pago no válido',
   })
-  metodoPago: MetodoPagoGasto;
+  metodoPago: MetodoPago;
 
   @ApiPropertyOptional({
     description: 'ID del caso asociado',

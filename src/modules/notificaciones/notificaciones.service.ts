@@ -163,7 +163,7 @@ export class NotificacionesService {
 
       // Programar envío si es necesario
       if (notificacion.fechaProgramada) {
-        await this.programarEnvio(notificacion.id, notificacion.fechaProgramada);
+        await this.programarEnvioPrivado(notificacion.id, notificacion.fechaProgramada);
       } else {
         // Enviar inmediatamente
         await this.enviarNotificacion(notificacion.id);
@@ -355,8 +355,8 @@ export class NotificacionesService {
       // Actualizar notificación
       await this.update(id, { fechaProgramada: programarDto.fechaProgramada }, 'temp');
 
-      // Programar trabajo
-      await this.programarEnvio(id, fechaProgramada);
+      // Programar trabajo usando el método privado
+      await this.programarEnvioPrivado(id, fechaProgramada);
 
       return { success: true, fechaProgramada };
 
@@ -463,7 +463,7 @@ export class NotificacionesService {
     }));
   }
 
-  private async programarEnvio(notificacionId: string, fechaEnvio: Date): Promise<void> {
+  private async programarEnvioPrivado(notificacionId: string, fechaEnvio: Date): Promise<void> {
     const job = new CronJob(fechaEnvio, async () => {
       await this.enviarNotificacion(notificacionId);
     });

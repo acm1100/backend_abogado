@@ -17,6 +17,9 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TipoEmpresa, EstadoSuscripcion } from '../../../entities/empresa.entity';
+import { DireccionDto } from './direccion.dto';
+import { ContactoDto } from './contacto.dto';
+import { ConfiguracionEmpresaDto } from './configuracion-empresa.dto';
 
 export class CreateEmpresaDto {
   @ApiProperty({

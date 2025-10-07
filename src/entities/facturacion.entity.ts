@@ -20,6 +20,7 @@ export enum EstadoFactura {
   EMITIDA = 'EMITIDA',
   ENVIADA = 'ENVIADA',
   PAGADA = 'PAGADA',
+  PAGO_PARCIAL = 'PAGO_PARCIAL',
   VENCIDA = 'VENCIDA',
   ANULADA = 'ANULADA',
   RECHAZADA = 'RECHAZADA'
@@ -38,6 +39,16 @@ export enum TipoServicio {
   CONSTITUCION_EMPRESAS = 'CONSTITUCION_EMPRESAS',
   GESTION_TRIBUTARIA = 'GESTION_TRIBUTARIA',
   CONSULTA_LEGAL = 'CONSULTA_LEGAL',
+  OTRO = 'OTRO'
+}
+
+export enum MetodoPago {
+  EFECTIVO = 'EFECTIVO',
+  TRANSFERENCIA = 'TRANSFERENCIA',
+  CHEQUE = 'CHEQUE',
+  TARJETA_CREDITO = 'TARJETA_CREDITO',
+  TARJETA_DEBITO = 'TARJETA_DEBITO',
+  DEPOSITO = 'DEPOSITO',
   OTRO = 'OTRO'
 }
 
@@ -147,6 +158,52 @@ export class Facturacion extends BaseEntity {
     metodoPago?: string[];
   };
 
+  // Campos adicionales requeridos por el servicio
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  numeroInterno?: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  descuentoGlobal: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  detraccion: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  configuracion?: any;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaModificacion?: Date;
+
+  @Column({ type: 'boolean', default: false })
+  anulada: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  motivoAnulacion?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaAnulacion?: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  anuladaPor?: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  montoPagado: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  montoTotal: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  metodoPagoUtilizado?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  referenciaPago?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaEnvio?: Date;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  tipo?: string;
+
   @Column({ type: 'jsonb', nullable: true })
   tracking: {
     fechaEnvioCliente?: Date;
@@ -178,28 +235,28 @@ export class Facturacion extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   facturaRelacionadaId: string; // Para notas de crédito/débito
 
-  // Relaciones
-  @ManyToOne(() => Empresa, empresa => empresa.facturas)
+  // Relaciones simplificadas para evitar referencias circulares
+  @ManyToOne(() => Empresa)
   @JoinColumn({ name: 'empresaId' })
   empresa: Empresa;
 
-  @ManyToOne(() => Cliente, cliente => cliente.facturas)
+  @ManyToOne(() => Cliente)
   @JoinColumn({ name: 'clienteId' })
   cliente: Cliente;
 
-  @ManyToOne(() => Caso, caso => caso.facturas, { nullable: true })
+  @ManyToOne(() => Caso, { nullable: true })
   @JoinColumn({ name: 'casoId' })
   caso: Caso;
 
-  @ManyToOne(() => Proyecto, proyecto => proyecto.facturas, { nullable: true })
+  @ManyToOne(() => Proyecto, { nullable: true })
   @JoinColumn({ name: 'proyectoId' })
   proyecto: Proyecto;
 
-  @ManyToOne(() => Usuario, usuario => usuario.facturasCreadas)
+  @ManyToOne(() => Usuario)
   @JoinColumn({ name: 'creadoPor' })
   creador: Usuario;
 
-  @ManyToOne(() => Usuario, usuario => usuario.facturasAprobadas, { nullable: true })
+  @ManyToOne(() => Usuario, { nullable: true })
   @JoinColumn({ name: 'aprobadoPor' })
   aprobador: Usuario;
 

@@ -187,7 +187,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const startTime = Date.now();
 
-    console.log(`📥 ${method} ${url}`, {
+    console.log(`[IN] ${method} ${url}`, {
       userId,
       tenantId,
       ip,
@@ -202,7 +202,7 @@ export class LoggingInterceptor implements NestInterceptor {
         const endTime = Date.now();
         const processingTime = endTime - startTime;
 
-        console.log(`📤 ${method} ${url} - ${processingTime}ms`, {
+        console.log(`[OUT] ${method} ${url} - ${processingTime}ms`, {
           userId,
           tenantId,
           processingTime,

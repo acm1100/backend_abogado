@@ -20,12 +20,13 @@ import {
 } from 'typeorm';
 import { 
   Facturacion, 
-  EstadoFacturacion, 
-  TipoFacturacion,
+  EstadoFactura, 
+  TipoFactura,
+  MonedaFactura,
   MetodoPago 
 } from '../../entities/facturacion.entity';
-import { Cliente } from '../../entities/cliente.entity';
-import { Caso } from '../../entities/caso.entity';
+import { Cliente, EstadoCliente } from '../../entities/cliente.entity';
+import { Caso, EstadoCaso } from '../../entities/caso.entity';
 import { Proyecto } from '../../entities/proyecto.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { CreateFacturacionDto, DetalleFacturacionDto } from './dto/create-facturacion.dto';
@@ -67,7 +68,7 @@ export class FacturacionService {
       where: {
         id: createFacturacionDto.clienteId,
         empresaId,
-        activo: true,
+        estado: EstadoCliente.ACTIVO,
       },
     });
 
@@ -96,25 +97,32 @@ export class FacturacionService {
     // Validar fechas
     this.validateFechas(createFacturacionDto.fechaEmision, createFacturacionDto.fechaVencimiento);
 
+    // Buscar el usuario creador
+    const creador = await this.usuariosRepository.findOne({
+      where: { id: usuarioCreadorId }
+    });
+
     // Crear la factura
     const factura = this.facturacionRepository.create({
-      ...createFacturacionDto,
+      tipoFactura: createFacturacionDto.tipo,
+      estado: createFacturacionDto.estado || EstadoFactura.BORRADOR,
+      moneda: createFacturacionDto.moneda as MonedaFactura || MonedaFactura.PEN,
+      fechaEmision: new Date(createFacturacionDto.fechaEmision),
+      fechaVencimiento: new Date(createFacturacionDto.fechaVencimiento),
+      observaciones: createFacturacionDto.observaciones,
+      
+      // IDs
       empresaId,
       numeroInterno,
-      usuarioCreadorId,
-      detalles: detallesCalculados,
       
       // Totales calculados
       subtotal: totales.subtotal,
-      montoDescuento: totales.montoDescuento,
-      baseImponible: totales.baseImponible,
-      montoIGV: totales.montoIGV,
-      montoDetraccion: totales.montoDetraccion,
-      montoTotal: totales.montoTotal,
+      descuento: totales.montoDescuento || 0,
+      igv: totales.montoIGV || 0,
+      total: totales.montoTotal,
       
-      estado: createFacturacionDto.estado || EstadoFacturacion.BORRADOR,
-      fechaCreacion: new Date(),
-      fechaModificacion: new Date(),
+      // Relaciones
+      creador,
       
       configuracion: {
         facturacionElectronica: {
@@ -138,7 +146,7 @@ export class FacturacionService {
       },
     });
 
-    const facturaGuardada = await this.facturacionRepository.save(factura);
+    const facturaGuardada = await this.facturacionRepository.save(factura) as Facturacion;
 
     // Enviar por email si está configurado
     if (createFacturacionDto.enviarEmail) {
@@ -308,7 +316,7 @@ export class FacturacionService {
       throw new BadRequestException('La factura ya está anulada');
     }
 
-    if (factura.estado === EstadoFacturacion.PAGADA) {
+    if (factura.estado === EstadoFactura.PAGADA) {
       throw new BadRequestException('No se puede anular una factura pagada');
     }
 
@@ -316,7 +324,7 @@ export class FacturacionService {
     factura.motivoAnulacion = motivo;
     factura.fechaAnulacion = new Date();
     factura.anuladaPor = usuarioId;
-    factura.estado = EstadoFacturacion.ANULADA;
+    factura.estado = EstadoFactura.ANULADA;
     factura.fechaModificacion = new Date();
 
     await this.facturacionRepository.save(factura);
@@ -340,7 +348,7 @@ export class FacturacionService {
       throw new BadRequestException('No se puede registrar pago en una factura anulada');
     }
 
-    if (factura.estado === EstadoFacturacion.PAGADA) {
+    if (factura.estado === EstadoFactura.PAGADA) {
       throw new BadRequestException('La factura ya está pagada');
     }
 
@@ -358,9 +366,9 @@ export class FacturacionService {
 
     // Cambiar estado según el monto pagado
     if (nuevoTotalPagado >= factura.montoTotal) {
-      factura.estado = EstadoFacturacion.PAGADA;
+      factura.estado = EstadoFactura.PAGADA;
     } else if (nuevoTotalPagado > 0) {
-      factura.estado = EstadoFacturacion.PAGO_PARCIAL;
+      factura.estado = EstadoFactura.PAGO_PARCIAL;
     }
 
     factura.fechaModificacion = new Date();
@@ -459,7 +467,7 @@ export class FacturacionService {
   ): Promise<void> {
     if (dto.casoId) {
       const caso = await this.casosRepository.findOne({
-        where: { id: dto.casoId, empresaId, activo: true },
+        where: { id: dto.casoId, empresaId, estado: EstadoCaso.ACTIVO },
       });
       if (!caso) {
         throw new NotFoundException('Caso no encontrado');
@@ -529,7 +537,7 @@ export class FacturacionService {
 
   private async generateNumeroInterno(
     empresaId: string,
-    tipo: TipoFacturacion,
+    tipo: TipoFactura,
   ): Promise<string> {
     const year = new Date().getFullYear();
     const prefix = this.getTipoPrefix(tipo);
@@ -553,13 +561,13 @@ export class FacturacionService {
     return `${serie}-${numeroSecuencial.toString().padStart(8, '0')}`;
   }
 
-  private getTipoPrefix(tipo: TipoFacturacion): string {
+  private getTipoPrefix(tipo: TipoFactura): string {
     const prefixes = {
-      [TipoFacturacion.FACTURA]: 'F',
-      [TipoFacturacion.BOLETA]: 'B',
-      [TipoFacturacion.NOTA_CREDITO]: 'NC',
-      [TipoFacturacion.NOTA_DEBITO]: 'ND',
-      [TipoFacturacion.RECIBO_HONORARIOS]: 'RH',
+      [TipoFactura.FACTURA]: 'F',
+      [TipoFactura.BOLETA]: 'B',
+      [TipoFactura.NOTA_CREDITO]: 'NC',
+      [TipoFactura.NOTA_DEBITO]: 'ND',
+      [TipoFactura.RECIBO_HONORARIOS]: 'RH',
     };
     return prefixes[tipo] || 'F';
   }
@@ -577,40 +585,40 @@ export class FacturacionService {
     if (factura.anulada) return false;
     
     const estadosEditables = [
-      EstadoFacturacion.BORRADOR,
-      EstadoFacturacion.EMITIDA,
+      EstadoFactura.BORRADOR,
+      EstadoFactura.EMITIDA,
     ];
 
     return estadosEditables.includes(factura.estado);
   }
 
   private validateStateTransition(
-    estadoActual: EstadoFacturacion,
-    nuevoEstado: EstadoFacturacion,
+    estadoActual: EstadoFactura,
+    nuevoEstado: EstadoFactura,
   ): void {
     const transicionesValidas = {
-      [EstadoFacturacion.BORRADOR]: [
-        EstadoFacturacion.EMITIDA,
-        EstadoFacturacion.ANULADA,
+      [EstadoFactura.BORRADOR]: [
+        EstadoFactura.EMITIDA,
+        EstadoFactura.ANULADA,
       ],
-      [EstadoFacturacion.EMITIDA]: [
-        EstadoFacturacion.ENVIADA,
-        EstadoFacturacion.VENCIDA,
-        EstadoFacturacion.PAGO_PARCIAL,
-        EstadoFacturacion.PAGADA,
-        EstadoFacturacion.ANULADA,
+      [EstadoFactura.EMITIDA]: [
+        EstadoFactura.ENVIADA,
+        EstadoFactura.VENCIDA,
+        EstadoFactura.PAGO_PARCIAL,
+        EstadoFactura.PAGADA,
+        EstadoFactura.ANULADA,
       ],
-      [EstadoFacturacion.ENVIADA]: [
-        EstadoFacturacion.VENCIDA,
-        EstadoFacturacion.PAGO_PARCIAL,
-        EstadoFacturacion.PAGADA,
+      [EstadoFactura.ENVIADA]: [
+        EstadoFactura.VENCIDA,
+        EstadoFactura.PAGO_PARCIAL,
+        EstadoFactura.PAGADA,
       ],
-      [EstadoFacturacion.VENCIDA]: [
-        EstadoFacturacion.PAGO_PARCIAL,
-        EstadoFacturacion.PAGADA,
+      [EstadoFactura.VENCIDA]: [
+        EstadoFactura.PAGO_PARCIAL,
+        EstadoFactura.PAGADA,
       ],
-      [EstadoFacturacion.PAGO_PARCIAL]: [
-        EstadoFacturacion.PAGADA,
+      [EstadoFactura.PAGO_PARCIAL]: [
+        EstadoFactura.PAGADA,
       ],
     };
 
@@ -623,22 +631,22 @@ export class FacturacionService {
 
   private async processStateChange(
     factura: Facturacion,
-    nuevoEstado: EstadoFacturacion,
+    nuevoEstado: EstadoFactura,
     updateDto: UpdateFacturacionDto,
   ): Promise<void> {
     switch (nuevoEstado) {
-      case EstadoFacturacion.EMITIDA:
+      case EstadoFactura.EMITIDA:
         // Generar número SUNAT si está habilitada la facturación electrónica
         if (factura.configuracion?.facturacionElectronica?.habilitada) {
 
         }
         break;
 
-      case EstadoFacturacion.ENVIADA:
+      case EstadoFactura.ENVIADA:
         factura.fechaEnvio = new Date();
         break;
 
-      case EstadoFacturacion.PAGADA:
+      case EstadoFactura.PAGADA:
         if (!factura.fechaPago) {
           factura.fechaPago = new Date();
         }
@@ -653,7 +661,7 @@ export class FacturacionService {
   ): void {
     if (filters.busqueda) {
       queryBuilder.andWhere(
-        '(factura.numeroInterno ILIKE :busqueda OR factura.receptor->>'nombre' ILIKE :busqueda OR factura.observaciones ILIKE :busqueda)',
+        "(factura.numeroInterno ILIKE :busqueda OR factura.receptor->>'nombre' ILIKE :busqueda OR factura.observaciones ILIKE :busqueda)",
         { busqueda: `%${filters.busqueda}%` },
       );
     }
@@ -695,11 +703,11 @@ export class FacturacionService {
     if (filters.vencidas) {
       const hoy = new Date().toISOString().split('T')[0];
       queryBuilder.andWhere('factura.fechaVencimiento < :hoy', { hoy });
-      queryBuilder.andWhere('factura.estado != :pagada', { pagada: EstadoFacturacion.PAGADA });
+      queryBuilder.andWhere('factura.estado != :pagada', { pagada: EstadoFactura.PAGADA });
     }
 
     if (filters.pagadas) {
-      queryBuilder.andWhere('factura.estado = :pagada', { pagada: EstadoFacturacion.PAGADA });
+      queryBuilder.andWhere('factura.estado = :pagada', { pagada: EstadoFactura.PAGADA });
     }
 
     if (filters.anuladas !== undefined) {
@@ -751,11 +759,11 @@ export class FacturacionService {
     const montoTotal = facturas.reduce((sum, f) => sum + f.montoTotal, 0);
     const montoPagado = facturas.reduce((sum, f) => sum + (f.montoPagado || 0), 0);
     const montoPendiente = montoTotal - montoPagado;
-    const facturasPagadas = facturas.filter(f => f.estado === EstadoFacturacion.PAGADA).length;
+    const facturasPagadas = facturas.filter(f => f.estado === EstadoFactura.PAGADA).length;
     
     const hoy = new Date();
     const facturasVencidas = facturas.filter(
-      f => new Date(f.fechaVencimiento) < hoy && f.estado !== EstadoFacturacion.PAGADA,
+      f => new Date(f.fechaVencimiento) < hoy && f.estado !== EstadoFactura.PAGADA,
     ).length;
 
     return {
@@ -848,16 +856,16 @@ export class FacturacionService {
     proximosMes.setMonth(proximosMes.getMonth() + 1);
 
     const vencidas = facturas.filter(f => 
-      new Date(f.fechaVencimiento) < hoy && f.estado !== EstadoFacturacion.PAGADA
+      new Date(f.fechaVencimiento) < hoy && f.estado !== EstadoFactura.PAGADA
     );
     const porVencer = facturas.filter(f => 
       new Date(f.fechaVencimiento) >= hoy && 
       new Date(f.fechaVencimiento) <= proximosMes &&
-      f.estado !== EstadoFacturacion.PAGADA
+      f.estado !== EstadoFactura.PAGADA
     );
     const vigentes = facturas.filter(f => 
       new Date(f.fechaVencimiento) > proximosMes &&
-      f.estado !== EstadoFacturacion.PAGADA
+      f.estado !== EstadoFactura.PAGADA
     );
 
     return {
@@ -893,12 +901,12 @@ export class FacturacionService {
         };
       }
       acc[clienteId].cantidad++;
-      acc[clienteId].monto += factura.montoTotal;
+      acc[clienteId].monto += factura.total;
       return acc;
     }, {});
 
-    return Object.values(clientesMap)
-      .sort((a: any, b: any) => b.monto - a.monto)
+    return (Object.values(clientesMap) as { clienteId: string; clienteNombre: string; cantidad: number; monto: number; }[])
+      .sort((a, b) => b.monto - a.monto)
       .slice(0, 10); // Top 10 clientes
   }
 

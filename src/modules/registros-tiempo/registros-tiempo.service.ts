@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Between, Like } from 'typeorm';
 import { 
@@ -153,15 +153,15 @@ export class RegistrosTiempoService {
   private temporizadoresActivos: Map<string, TemporizadorActivo> = new Map();
 
   constructor(
-    // @InjectRepository(RegistroTiempo)
+    @Inject('REGISTRO_TIEMPO_REPOSITORY')
     private registroTiempoRepository: any, // Repository<RegistroTiempo>,
-    // @InjectRepository(Cliente)
+    @InjectRepository(Cliente)
     private clienteRepository: Repository<Cliente>,
-    // @InjectRepository(Caso)
+    @InjectRepository(Caso)
     private casoRepository: Repository<Caso>,
-    // @InjectRepository(Proyecto)
+    @InjectRepository(Proyecto)
     private proyectoRepository: Repository<Proyecto>,
-    // @InjectRepository(Usuario)
+    @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
   ) {}
 
@@ -399,7 +399,7 @@ export class RegistrosTiempoService {
         relations: ['rol']
       });
 
-      if (!usuario?.rol?.permisos?.includes('registros_tiempo:update_all')) {
+      if (!usuario?.rol?.permisos?.includes('registros_tiempo:update_all' as any)) {
         throw new ForbiddenException('No tiene permisos para editar este registro');
       }
     }
@@ -922,7 +922,7 @@ export class RegistrosTiempoService {
         relations: ['rol']
       });
 
-      if (!usuario?.rol?.permisos?.includes('registros_tiempo:delete_all')) {
+      if (!usuario?.rol?.permisos?.includes('registros_tiempo:delete_all' as any)) {
         throw new ForbiddenException('No tiene permisos para eliminar este registro');
       }
     }

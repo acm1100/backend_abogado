@@ -354,6 +354,6 @@ import { ClientesModule } from '../clientes/clientes.module';
 })
 export class FlujosTrabajoModule {
   constructor() {
-    console.log('🔄 FlujosTrabajoModule initialized - Workflow automation system ready');
+    console.log('FlujosTrabajoModule initialized - Workflow automation system ready');
   }
 }

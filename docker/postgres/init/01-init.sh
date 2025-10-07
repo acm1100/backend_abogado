@@ -16,4 +16,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     UPDATE pg_database SET datcollate='es_PE.UTF-8', datctype='es_PE.UTF-8' WHERE datname='pab_legal_test';
 EOSQL
 
-echo "✅ PostgreSQL initialization completed successfully!"
+echo "[SUCCESS] PostgreSQL initialization completed successfully!"

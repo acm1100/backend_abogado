@@ -98,6 +98,9 @@ export class Evento extends BaseEntity {
   @Column({ type: 'int', default: 15 })
   minutosRecordatorio: number;
 
+  @Column({ type: 'boolean', default: true })
+  activo: boolean;
+
   @Column({ type: 'varchar', length: 50, nullable: true })
   color: string;
 

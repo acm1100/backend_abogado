@@ -3,7 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseConfig } from '../config/configuration';
 
-// Importar todas las entidades
+// Importar todas las entidades reales
+import { BaseEntity } from '../entities/base.entity';
 import { Empresa } from '../entities/empresa.entity';
 import { Suscripcion } from '../entities/suscripcion.entity';
 import { Rol } from '../entities/rol.entity';
@@ -11,35 +12,13 @@ import { Permiso } from '../entities/permiso.entity';
 import { RolPermiso } from '../entities/rol-permiso.entity';
 import { Usuario } from '../entities/usuario.entity';
 import { Cliente } from '../entities/cliente.entity';
-import { ContactoCliente } from '../entities/contacto-cliente.entity';
 import { Caso } from '../entities/caso.entity';
-import { TipoProyecto } from '../entities/tipo-proyecto.entity';
-import { EstadoProyecto } from '../entities/estado-proyecto.entity';
 import { Proyecto } from '../entities/proyecto.entity';
-import { ProyectoColaborador } from '../entities/proyecto-colaborador.entity';
-import { Tarea } from '../entities/tarea.entity';
-import { FlujoTrabajo } from '../entities/flujo-trabajo.entity';
-import { EtapaFlujo } from '../entities/etapa-flujo.entity';
-import { TipoActividad } from '../entities/tipo-actividad.entity';
-import { RegistroTiempo } from '../entities/registro-tiempo.entity';
-import { CategoriaGasto } from '../entities/categoria-gasto.entity';
+import { FlujoTrabajo } from '../entities/flujo_trabajo.entity';
 import { Gasto } from '../entities/gasto.entity';
-import { Tarifa } from '../entities/tarifa.entity';
-import { Factura } from '../entities/factura.entity';
-import { FacturaDetalle } from '../entities/factura-detalle.entity';
-import { Pago } from '../entities/pago.entity';
-import { RecordatorioCobranza } from '../entities/recordatorio-cobranza.entity';
-import { TipoEvento } from '../entities/tipo-evento.entity';
-import { EventoAgenda } from '../entities/evento-agenda.entity';
-import { EventoInvitado } from '../entities/evento-invitado.entity';
-import { PlantillaNotificacion } from '../entities/plantilla-notificacion.entity';
-import { Notificacion } from '../entities/notificacion.entity';
-import { CategoriaDocumento } from '../entities/categoria-documento.entity';
-import { PlantillaDocumento } from '../entities/plantilla-documento.entity';
-import { Documento } from '../entities/documento.entity';
-import { DocumentoVersion } from '../entities/documento-version.entity';
-import { DocumentoPermiso } from '../entities/documento-permiso.entity';
-import { Bitacora } from '../entities/bitacora.entity';
+import { Facturacion } from '../entities/facturacion.entity';
+import { Documentacion } from '../entities/documentacion.entity';
+import { Evento } from '../entities/evento.entity';
 
 @Module({
   imports: [
@@ -71,7 +50,7 @@ import { Bitacora } from '../entities/bitacora.entity';
             application_name: 'AbogadosAPI',
           },
 
-          // Registro de todas las entidades
+          // Registro de todas las entidades reales
           entities: [
             // Core multi-tenant y usuarios
             Empresa,
@@ -83,51 +62,25 @@ import { Bitacora } from '../entities/bitacora.entity';
             
             // CRM jurídico
             Cliente,
-            ContactoCliente,
             Caso,
             
             // Gestión de proyectos
-            TipoProyecto,
-            EstadoProyecto,
             Proyecto,
-            ProyectoColaborador,
-            Tarea,
             
             // Workflows
             FlujoTrabajo,
-            EtapaFlujo,
             
-            // Tiempo y gastos
-            TipoActividad,
-            RegistroTiempo,
-            CategoriaGasto,
+            // Gastos
             Gasto,
             
             // Facturación
-            Tarifa,
-            Factura,
-            FacturaDetalle,
-            Pago,
-            RecordatorioCobranza,
-            
-            // Agenda
-            TipoEvento,
-            EventoAgenda,
-            EventoInvitado,
-            
-            // Notificaciones
-            PlantillaNotificacion,
-            Notificacion,
+            Facturacion,
             
             // Documentos
-            CategoriaDocumento,
-            PlantillaDocumento,
-            Documento,
-            DocumentoVersion,
-            DocumentoPermiso,
+            Documentacion,
             
-            // Auditoría
-            Bitacora,
+            // Eventos/Agenda
+            Evento,
           ],
 
           // Migraciones
@@ -161,6 +114,6 @@ import { Bitacora } from '../entities/bitacora.entity';
 })
 export class DatabaseModule {
   constructor() {
-    console.log('🗃️  Módulo de base de datos inicializado');
+    console.log('Módulo de base de datos inicializado');
   }
 }

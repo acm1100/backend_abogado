@@ -115,16 +115,14 @@ export class GastosController {
   @ApiQuery({
     name: 'fechaInicio',
     required: false,
-    description: 'Fecha de inicio para filtrar',
+    description: 'Fecha de inicio para filtrar (YYYY-MM-DD)',
     type: 'string',
-    format: 'date',
   })
   @ApiQuery({
     name: 'fechaFin',
     required: false,
-    description: 'Fecha de fin para filtrar',
+    description: 'Fecha de fin para filtrar (YYYY-MM-DD)',
     type: 'string',
-    format: 'date',
   })
   @ApiQuery({
     name: 'montoMinimo',
@@ -149,28 +147,24 @@ export class GastosController {
     required: false,
     description: 'Filtrar por ID del caso',
     type: 'string',
-    format: 'uuid',
   })
   @ApiQuery({
     name: 'proyectoId',
     required: false,
     description: 'Filtrar por ID del proyecto',
     type: 'string',
-    format: 'uuid',
   })
   @ApiQuery({
     name: 'clienteId',
     required: false,
     description: 'Filtrar por ID del cliente',
     type: 'string',
-    format: 'uuid',
   })
   @ApiQuery({
     name: 'usuarioId',
     required: false,
     description: 'Filtrar por ID del usuario',
     type: 'string',
-    format: 'uuid',
   })
   @ApiQuery({
     name: 'reembolsable',
@@ -256,12 +250,7 @@ export class GastosController {
       } : undefined,
     };
 
-    return await this.gastosService.findAll(
-      filtros,
-      paginacion,
-      empresaId,
-      req.user.id,
-    );
+    return await this.gastosService.findAll(filtros, empresaId);
   }
 
   @Get('estadisticas')
@@ -322,7 +311,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -348,7 +336,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -385,7 +372,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -418,7 +404,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -451,7 +436,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -485,7 +469,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -516,7 +499,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -547,7 +529,6 @@ export class GastosController {
   @ApiParam({
     name: 'id',
     description: 'ID único del gasto',
-    format: 'uuid',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,

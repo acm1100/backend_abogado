@@ -1,7 +1,7 @@
 import { PartialType, OmitType } from '@nestjs/swagger';
 import { CreateNotificacionDto } from './create-notificacion.dto';
 import { IsOptional, IsEnum, IsBoolean, IsDateString } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export enum EstadoNotificacion {
   PENDIENTE = 'pendiente',

@@ -19,6 +19,21 @@ import { RolPermiso } from './rol-permiso.entity';
 @Index('idx_permisos_activo', ['activo'])
 export class Permiso extends BaseEntity {
   @ApiProperty({
+    description: 'Código único del permiso',
+    example: 'clientes:crear',
+    uniqueItems: true,
+  })
+  @Column({
+    name: 'codigo',
+    type: 'varchar',
+    length: 100,
+    unique: true,
+    nullable: false,
+    comment: 'Código único del permiso en formato modulo:accion',
+  })
+  codigo: string;
+
+  @ApiProperty({
     description: 'Módulo al que pertenece el permiso',
     example: 'clientes',
     enum: [

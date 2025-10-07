@@ -1,28 +1,56 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AuthResponseDto {
+export class EmpresaInfoDto {
   @ApiProperty({
-    description: 'Token de acceso JWT',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'ID de la empresa',
+    example: 'uuid-123',
   })
-  accessToken: string;
+  id: string;
 
   @ApiProperty({
-    description: 'Token de refresco',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'Razón social de la empresa',
+    example: 'Bufete Legal SAC',
   })
-  refreshToken: string;
+  razonSocial: string;
 
   @ApiProperty({
-    description: 'Tiempo de expiración del token en segundos',
-    example: 3600,
+    description: 'RUC de la empresa',
+    example: '20123456789',
   })
-  expiresIn: number;
+  ruc: string;
 
   @ApiProperty({
-    description: 'Información del usuario autenticado',
+    description: 'Estado activo de la empresa',
+    example: true,
   })
-  user: UserInfoDto;
+  activo: boolean;
+}
+
+export class RolInfoDto {
+  @ApiProperty({
+    description: 'ID del rol',
+    example: 'uuid-123',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Nombre del rol',
+    example: 'Administrador',
+  })
+  nombre: string;
+
+  @ApiProperty({
+    description: 'Nivel jerárquico del rol',
+    example: 1,
+  })
+  nivel: number;
+
+  @ApiProperty({
+    description: 'Lista de permisos del rol',
+    type: [String],
+    example: ['usuarios.crear', 'usuarios.leer', 'casos.gestionar'],
+  })
+  permisos: string[];
 }
 
 export class UserInfoDto {
@@ -80,55 +108,27 @@ export class UserInfoDto {
   ultimoAcceso: Date;
 }
 
-export class EmpresaInfoDto {
+export class AuthResponseDto {
   @ApiProperty({
-    description: 'ID de la empresa',
-    example: 'uuid-123',
+    description: 'Token de acceso JWT',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
-  id: string;
+  accessToken: string;
 
   @ApiProperty({
-    description: 'Razón social de la empresa',
-    example: 'Bufete Legal SAC',
+    description: 'Token de refresco',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
-  razonSocial: string;
+  refreshToken: string;
 
   @ApiProperty({
-    description: 'RUC de la empresa',
-    example: '20123456789',
+    description: 'Tiempo de expiración del token en segundos',
+    example: 3600,
   })
-  ruc: string;
+  expiresIn: number;
 
   @ApiProperty({
-    description: 'Estado activo de la empresa',
-    example: true,
+    description: 'Información del usuario autenticado',
   })
-  activo: boolean;
-}
-
-export class RolInfoDto {
-  @ApiProperty({
-    description: 'ID del rol',
-    example: 'uuid-123',
-  })
-  id: string;
-
-  @ApiProperty({
-    description: 'Nombre del rol',
-    example: 'Administrador',
-  })
-  nombre: string;
-
-  @ApiProperty({
-    description: 'Nivel jerárquico del rol',
-    example: 1,
-  })
-  nivel: number;
-
-  @ApiProperty({
-    description: 'Lista de permisos del rol',
-    type: [String],
-    example: ['usuarios.crear', 'usuarios.leer', 'casos.gestionar'],
-  })
-  permisos: string[];
+  user: UserInfoDto;
 }

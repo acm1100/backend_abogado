@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Configurando entorno de desarrollo para PAB Legal System..."
+echo "Configurando entorno de desarrollo para PAB Legal System..."
 
 # Colores para output
 RED='\033[0;31m'
@@ -16,15 +16,15 @@ NC='\033[0m' # No Color
 
 # Función para imprimir mensajes
 print_message() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}[SUCCESS] $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}[WARNING] $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}[ERROR] $1${NC}"
 }
 
 print_info() {
@@ -101,7 +101,7 @@ fi
 
 # 8. Mostrar próximos pasos
 echo ""
-print_info "🎉 Configuración completada!"
+print_info "Configuración completada!"
 echo ""
 echo "Próximos pasos:"
 echo "1. Configura las variables en el archivo .env"
@@ -114,4 +114,4 @@ echo "- API: http://localhost:3000"
 echo "- Documentación: http://localhost:3000/docs"
 echo "- Health Check: http://localhost:3000/health"
 echo ""
-print_message "¡Feliz desarrollo! 🚀"
+print_message "¡Feliz desarrollo!"

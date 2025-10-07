@@ -19,7 +19,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
     // Log de request entrante
     this.logger.log(
-      `📥 ${method} ${originalUrl} - ${ip} - ${userAgent}`,
+      `[IN] ${method} ${originalUrl} - ${ip} - ${userAgent}`,
       {
         method,
         url: originalUrl,
@@ -41,7 +41,7 @@ export class LoggerMiddleware implements NestMiddleware {
       // Log de response
       const logger = new Logger('HTTP');
       logger.log(
-        `📤 ${method} ${originalUrl} - ${res.statusCode} - ${processingTime}ms - ${contentLength}b`,
+        `[OUT] ${method} ${originalUrl} - ${res.statusCode} - ${processingTime}ms - ${contentLength}b`,
         {
           method,
           url: originalUrl,

@@ -13,10 +13,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from './base.entity';
 import { Empresa } from './empresa.entity';
 import { Usuario } from './usuario.entity';
-import { ContactoCliente } from './contacto-cliente.entity';
+// import { ContactoCliente } from './contacto-cliente.entity';
 import { Caso } from './caso.entity';
 import { Proyecto } from './proyecto.entity';
-import { Factura } from './factura.entity';
+// import { Factura } from './factura.entity';
 
 export enum TipoCliente {
   PERSONA_NATURAL = 'persona_natural',
@@ -27,6 +27,13 @@ export enum EstadoCliente {
   PROSPECTO = 'prospecto',
   ACTIVO = 'activo',
   INACTIVO = 'inactivo',
+}
+
+export enum TipoDocumento {
+  DNI = 'dni',
+  RUC = 'ruc',
+  PASAPORTE = 'pasaporte',
+  CARNET_EXTRANJERIA = 'carnet_extranjeria',
 }
 
 /**
@@ -90,6 +97,19 @@ export class Cliente extends BaseEntity {
     comment: 'Nombres para persona natural',
   })
   nombres?: string;
+
+  @ApiProperty({
+    description: 'Nombre completo o razón social del cliente',
+    example: 'Juan Carlos López García',
+  })
+  @Column({
+    name: 'nombre',
+    type: 'varchar',
+    length: 200,
+    nullable: false,
+    comment: 'Nombre completo o razón social',
+  })
+  nombre: string;
 
   @ApiProperty({
     description: 'Apellidos (solo para persona natural)',
@@ -228,6 +248,18 @@ export class Cliente extends BaseEntity {
   estado: EstadoCliente;
 
   @ApiProperty({
+    description: 'Indica si el cliente está activo',
+    example: true,
+  })
+  @Column({
+    name: 'activo',
+    type: 'boolean',
+    default: true,
+    comment: 'Indica si el cliente está activo en el sistema',
+  })
+  activo: boolean;
+
+  @ApiProperty({
     description: 'ID del usuario responsable',
     format: 'uuid',
     required: false,
@@ -333,6 +365,71 @@ export class Cliente extends BaseEntity {
   })
   historialInteracciones: any[];
 
+  @ApiProperty({
+    description: 'Nombre completo del cliente',
+    example: 'Juan Pérez García',
+  })
+  @Column({
+    name: 'nombre_completo',
+    type: 'varchar',
+    length: 400,
+    nullable: true,
+    comment: 'Nombre completo del cliente (calculado)',
+  })
+  nombreCompleto?: string;
+
+  @ApiProperty({
+    description: 'Configuración específica del cliente',
+    required: false,
+  })
+  @Column({
+    name: 'configuracion',
+    type: 'jsonb',
+    nullable: true,
+    default: {},
+    comment: 'Configuración específica del cliente',
+  })
+  configuracion?: any;
+
+  @ApiProperty({
+    description: 'Número de casos activos',
+    example: 2,
+  })
+  @Column({
+    name: 'casos_activos',
+    type: 'int',
+    default: 0,
+    comment: 'Cantidad de casos activos del cliente',
+  })
+  casosActivos: number;
+
+  @ApiProperty({
+    description: 'Total facturado al cliente',
+    example: 15000.50,
+  })
+  @Column({
+    name: 'total_facturado',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: 'Total facturado al cliente',
+  })
+  totalFacturado: number;
+
+  @ApiProperty({
+    description: 'Fecha del último contacto',
+    type: 'string',
+    format: 'date-time',
+  })
+  @Column({
+    name: 'fecha_ultimo_contacto',
+    type: 'timestamptz',
+    nullable: true,
+    comment: 'Fecha del último contacto con el cliente',
+  })
+  fechaUltimoContacto?: Date;
+
   // ===============================================
   // RELACIONES
   // ===============================================
@@ -358,14 +455,14 @@ export class Cliente extends BaseEntity {
   @JoinColumn({ name: 'responsable_id' })
   responsable?: Usuario;
 
-  @ApiProperty({
-    description: 'Contactos adicionales del cliente',
-    type: () => [ContactoCliente],
-  })
-  @OneToMany(() => ContactoCliente, (contacto) => contacto.cliente, {
-    cascade: true,
-  })
-  contactosAdicionales: ContactoCliente[];
+  // @ApiProperty({
+  //   description: 'Contactos adicionales del cliente',
+  //   type: () => [ContactoCliente],
+  // })
+  // @OneToMany(() => ContactoCliente, (contacto) => contacto.cliente, {
+  //   cascade: true,
+  // })
+  // contactosAdicionales: ContactoCliente[];
 
   @ApiProperty({
     description: 'Casos del cliente',
@@ -381,12 +478,12 @@ export class Cliente extends BaseEntity {
   @OneToMany(() => Proyecto, (proyecto) => proyecto.cliente)
   proyectos: Proyecto[];
 
-  @ApiProperty({
-    description: 'Facturas del cliente',
-    type: () => [Factura],
-  })
-  @OneToMany(() => Factura, (factura) => factura.cliente)
-  facturas: Factura[];
+  // @ApiProperty({
+  //   description: 'Facturas del cliente',
+  //   type: () => [Factura],
+  // })
+  // @OneToMany(() => Factura, (factura) => factura.cliente)
+  // facturas: Factura[];
 
   // ===============================================
   // HOOKS
@@ -416,17 +513,6 @@ export class Cliente extends BaseEntity {
   // ===============================================
 
   /**
-   * Nombre para mostrar según el tipo de cliente
-   */
-  get nombreCompleto(): string {
-    if (this.tipoCliente === TipoCliente.PERSONA_NATURAL) {
-      return `${this.nombres} ${this.apellidos}`;
-    } else {
-      return this.razonSocial || 'Empresa sin nombre';
-    }
-  }
-
-  /**
    * Documento de identidad según el tipo
    */
   get documentoIdentidad(): string | null {
@@ -442,6 +528,13 @@ export class Cliente extends BaseEntity {
    */
   get tipoDocumento(): string {
     return this.tipoCliente === TipoCliente.PERSONA_NATURAL ? 'DNI' : 'RUC';
+  }
+
+  /**
+   * Número de documento (alias para documentoIdentidad)
+   */
+  get numeroDocumento(): string | null {
+    return this.documentoIdentidad;
   }
 
   /**
@@ -512,20 +605,26 @@ export class Cliente extends BaseEntity {
    * Cantidad de proyectos activos
    */
   get cantidadProyectosActivos(): number {
-    return this.proyectos?.filter(proyecto => !proyecto.estado?.esFinal).length ?? 0;
+    return this.proyectos?.filter(proyecto => 
+      proyecto.estado !== 'completado' && 
+      proyecto.estado !== 'cancelado' && 
+      proyecto.estado !== 'facturado'
+    ).length ?? 0;
   }
 
   /**
    * Monto total facturado
    */
   get montoTotalFacturado(): number {
-    return this.facturas?.reduce((total, factura) => total + factura.total, 0) ?? 0;
+    // return this.facturas?.reduce((total, factura) => total + factura.total, 0) ?? 0;
+    return 0; // Temporalmente comentado
   }
 
   /**
    * Saldo pendiente de cobro
    */
   get saldoPendiente(): number {
-    return this.facturas?.reduce((total, factura) => total + factura.saldoPendiente, 0) ?? 0;
+    // return this.facturas?.reduce((total, factura) => total + factura.saldoPendiente, 0) ?? 0;
+    return 0; // Temporalmente comentado
   }
 }

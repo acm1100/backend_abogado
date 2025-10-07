@@ -4,9 +4,9 @@ import {
   PasoFlujoDto, 
   TriggerFlujoDto,
   EstadoFlujoTrabajo,
-  AccionPasoDto,
-  CondicionPasoDto
+  AccionPasoDto
 } from './create-flujo-trabajo.dto';
+import { CondicionPasoDto } from './condicion-paso.dto';
 import {
   IsOptional,
   IsEnum,

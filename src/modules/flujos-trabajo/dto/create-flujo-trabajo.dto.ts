@@ -17,6 +17,7 @@ import {
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CondicionPasoDto } from './condicion-paso.dto';
 
 // Tipos de workflow
 export enum TipoFlujoTrabajo {
@@ -66,49 +67,6 @@ export enum TipoCondicion {
   DOCUMENTO_PRESENTE = 'DOCUMENTO_PRESENTE',
   CAMPO_VALOR = 'CAMPO_VALOR',
   PERSONALIZADA = 'PERSONALIZADA',
-}
-
-export class CondicionPasoDto {
-  @ApiProperty({
-    description: 'Tipo de condición',
-    enum: TipoCondicion,
-    example: TipoCondicion.MONTO_MAYOR,
-  })
-  @IsEnum(TipoCondicion)
-  tipo: TipoCondicion;
-
-  @ApiProperty({
-    description: 'Campo a evaluar',
-    example: 'monto',
-    maxLength: 100,
-  })
-  @IsString()
-  @Length(1, 100)
-  campo: string;
-
-  @ApiProperty({
-    description: 'Operador de comparación',
-    example: '>',
-    enum: ['>', '<', '>=', '<=', '==', '!=', 'contains', 'not_contains', 'in', 'not_in'],
-  })
-  @IsEnum(['>', '<', '>=', '<=', '==', '!=', 'contains', 'not_contains', 'in', 'not_in'])
-  operador: string;
-
-  @ApiProperty({
-    description: 'Valor a comparar',
-    example: 1000,
-  })
-  valor: any;
-
-  @ApiPropertyOptional({
-    description: 'Descripción de la condición',
-    example: 'Si el monto es mayor a 1000 soles',
-    maxLength: 200,
-  })
-  @IsOptional()
-  @IsString()
-  @Length(0, 200)
-  descripcion?: string;
 }
 
 export class AccionPasoDto {

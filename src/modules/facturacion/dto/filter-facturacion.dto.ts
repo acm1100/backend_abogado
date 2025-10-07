@@ -11,8 +11,8 @@ import {
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
-  TipoFacturacion,
-  EstadoFacturacion,
+  TipoFactura,
+  EstadoFactura,
   MetodoPago,
 } from '../../../entities/facturacion.entity';
 
@@ -28,21 +28,21 @@ export class FilterFacturacionDto {
 
   @ApiPropertyOptional({
     description: 'Filtrar por tipo de comprobante',
-    enum: TipoFacturacion,
-    example: TipoFacturacion.FACTURA,
+    enum: TipoFactura,
+    example: TipoFactura.FACTURA,
   })
   @IsOptional()
-  @IsEnum(TipoFacturacion)
-  tipo?: TipoFacturacion;
+  @IsEnum(TipoFactura)
+  tipo?: TipoFactura;
 
   @ApiPropertyOptional({
     description: 'Filtrar por estado de la factura',
-    enum: EstadoFacturacion,
-    example: EstadoFacturacion.EMITIDA,
+    enum: EstadoFactura,
+    example: EstadoFactura.EMITIDA,
   })
   @IsOptional()
-  @IsEnum(EstadoFacturacion)
-  estado?: EstadoFacturacion;
+  @IsEnum(EstadoFactura)
+  estado?: EstadoFactura;
 
   @ApiPropertyOptional({
     description: 'Filtrar por cliente ID',
@@ -92,7 +92,7 @@ export class FilterFacturacionDto {
   @ApiPropertyOptional({
     description: 'Filtrar por método de pago',
     enum: MetodoPago,
-    example: MetodoPago.TRANSFERENCIA_BANCARIA,
+    example: MetodoPago.TRANSFERENCIA,
   })
   @IsOptional()
   @IsEnum(MetodoPago)

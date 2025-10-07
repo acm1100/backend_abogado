@@ -41,7 +41,7 @@ Gestión de citas, audiencias y eventos con recordatorios.
 - Testing: Jest
 - Logging: Winston
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 src/

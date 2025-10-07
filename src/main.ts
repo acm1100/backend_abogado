@@ -19,7 +19,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  app.use(helmet());
+  app.use(helmet.default());
   app.use(compression());
 
   // CORS configuración
@@ -51,11 +51,11 @@ async function bootstrap() {
     }),
   );
 
-  // Interceptores globales
-  app.useGlobalInterceptors(new TransformInterceptor());
-
   // Guards globales
   const reflector = app.get('Reflector');
+  
+  // Interceptores globales
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
   app.useGlobalGuards(
     new JwtAuthGuard(reflector),
     new RolesGuard(reflector),
@@ -118,12 +118,12 @@ async function bootstrap() {
   
   await app.listen(port);
   
-  logger.log(`🚀 Aplicación iniciada en: http://localhost:${port}`);
-  logger.log(`📚 Documentación disponible en: http://localhost:${port}/docs`);
-  logger.log(`🏢 Entorno: ${configService.get('NODE_ENV', 'development')}`);
+  logger.log(`Aplicación iniciada en: http://localhost:${port}`);
+  logger.log(`Documentación disponible en: http://localhost:${port}/docs`);
+  logger.log(`Entorno: ${configService.get('NODE_ENV', 'development')}`);
 }
 
 bootstrap().catch((error) => {
-  console.error('❌ Error al iniciar la aplicación:', error);
+  console.error('Error al iniciar la aplicación:', error);
   process.exit(1);
 });

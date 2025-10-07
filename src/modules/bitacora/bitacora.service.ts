@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Like, In, MoreThan, LessThan } from 'typeorm';
 import { 
@@ -154,11 +154,11 @@ export class BitacoraService {
   private alertasActivas: Map<string, AlertaAuditoria> = new Map();
 
   constructor(
-    // @InjectRepository(Bitacora)
+    @Inject('BITACORA_REPOSITORY')
     private bitacoraRepository: any, // Repository<Bitacora>,
-    // @InjectRepository(Usuario)
+    @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
-    // @InjectRepository(Empresa) 
+    @InjectRepository(Empresa) 
     private empresaRepository: Repository<Empresa>,
   ) {
     this.inicializarConfiguracionesPorDefecto();
@@ -1304,7 +1304,7 @@ export class BitacoraService {
       relations: ['rol']
     });
 
-    if (!usuario?.rol?.permisos?.includes('auditoria:export_sensitive')) {
+    if (!usuario?.rol?.permisos?.includes('auditoria:export_sensitive' as any)) {
       throw new ForbiddenException('No tiene permisos para exportar datos sensibles');
     }
   }

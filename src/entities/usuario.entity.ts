@@ -18,7 +18,7 @@ import { Rol } from './rol.entity';
 import { Cliente } from './cliente.entity';
 import { Caso } from './caso.entity';
 import { Proyecto } from './proyecto.entity';
-import { RegistroTiempo } from './registro-tiempo.entity';
+// import { RegistroTiempo } from './registro-tiempo.entity';
 
 @Entity('usuarios')
 @Unique('uk_usuarios_email_empresa', ['email', 'empresaId'])
@@ -201,6 +201,95 @@ export class Usuario extends BaseEntity {
   configuracionPersonal: Record<string, any>;
 
   @ApiProperty({
+    description: 'DNI del usuario',
+    example: '12345678',
+    required: false,
+  })
+  @Column({
+    name: 'dni',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    comment: 'Documento de identidad del usuario',
+  })
+  dni?: string;
+
+  @ApiHideProperty()
+  @Exclude()
+  @Column({
+    name: 'password',
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+    comment: 'Contraseña del usuario (alias de passwordHash)',
+  })
+  password: string;
+
+  @ApiProperty({
+    description: 'Fecha del último cambio de password',
+    type: 'string',
+    format: 'date-time',
+    required: false,
+  })
+  @Column({
+    name: 'fecha_ultimo_cambio_password',
+    type: 'timestamp',
+    nullable: true,
+  })
+  fechaUltimoCambioPassword?: Date;
+
+  @ApiProperty({
+    description: 'Indica si requiere cambio de password',
+    example: false,
+    default: false,
+  })
+  @Column({
+    name: 'requiere_cambio_password',
+    type: 'boolean',
+    default: false,
+  })
+  requiereCambioPassword: boolean;
+
+  @ApiProperty({
+    description: 'Número de intentos fallidos de login',
+    example: 0,
+    default: 0,
+  })
+  @Column({
+    name: 'intentos_fallidos',
+    type: 'int',
+    default: 0,
+  })
+  intentosFallidos: number;
+
+  @ApiProperty({
+    description: 'Fecha de bloqueo temporal',
+    type: 'string',
+    format: 'date-time',
+    required: false,
+  })
+  @Column({
+    name: 'fecha_bloqueo',
+    type: 'timestamp',
+    nullable: true,
+  })
+  fechaBloqueo?: Date;
+
+  @ApiProperty({
+    description: 'Tarifa por hora del usuario',
+    example: 150.00,
+    required: false,
+  })
+  @Column({
+    name: 'tarifa_hora',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
+  tarifaHora?: number;
+
+  @ApiProperty({
     description: 'ID del usuario que creó este registro',
     format: 'uuid',
     required: false,
@@ -267,12 +356,12 @@ export class Usuario extends BaseEntity {
   @OneToMany(() => Proyecto, (proyecto) => proyecto.responsable)
   proyectosAsignados: Proyecto[];
 
-  @ApiProperty({
-    description: 'Registros de tiempo del usuario',
-    type: () => [RegistroTiempo],
-  })
-  @OneToMany(() => RegistroTiempo, (registro) => registro.usuario)
-  registrosTiempo: RegistroTiempo[];
+  // @ApiProperty({
+  //   description: 'Registros de tiempo del usuario',
+  //   type: () => [RegistroTiempo],
+  // })
+  // @OneToMany(() => RegistroTiempo, (registro) => registro.usuario)
+  // registrosTiempo: RegistroTiempo[];
 
   // ===============================================
   // HOOKS

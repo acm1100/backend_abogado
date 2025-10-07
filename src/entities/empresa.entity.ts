@@ -11,10 +11,26 @@ import { Usuario } from './usuario.entity';
 import { Cliente } from './cliente.entity';
 import { Caso } from './caso.entity';
 import { Proyecto } from './proyecto.entity';
-import { Factura } from './factura.entity';
-import { Documento } from './documento.entity';
+// import { Factura } from './factura.entity';
+// import { Documento } from './documento.entity';
 import { Suscripcion } from './suscripcion.entity';
 import { Rol } from './rol.entity';
+
+export enum TipoEmpresa {
+  ESTUDIO_JURIDICO = 'estudio_juridico',
+  BUFETE = 'bufete',
+  BUFETE_JURIDICO = 'bufete_juridico',
+  DEPARTAMENTO_LEGAL = 'departamento_legal',
+  CONSULTORIA = 'consultoria',
+  OTRO = 'otro',
+}
+
+export enum EstadoSuscripcion {
+  ACTIVA = 'activa',
+  INACTIVA = 'inactiva',
+  SUSPENDIDA = 'suspendida',
+  CANCELADA = 'cancelada',
+}
 
 /**
  * Entidad principal para multi-tenancy
@@ -183,6 +199,18 @@ export class Empresa extends BaseEntity {
   configuracion: Record<string, any>;
 
   @ApiProperty({
+    description: 'Límites y restricciones de la empresa',
+    example: { maxUsuarios: 10, maxProyectos: 100, maxAlmacenamiento: '10GB' },
+  })
+  @Column({
+    name: 'limites',
+    type: 'jsonb',
+    default: { maxUsuarios: 5, maxProyectos: 50, maxAlmacenamiento: '5GB' },
+    comment: 'Límites y restricciones aplicables a la empresa',
+  })
+  limites: Record<string, any>;
+
+  @ApiProperty({
     description: 'Estado activo/inactivo de la empresa',
     example: true,
     default: true,
@@ -253,23 +281,23 @@ export class Empresa extends BaseEntity {
   })
   proyectos: Proyecto[];
 
-  @ApiProperty({
-    description: 'Facturas de la empresa',
-    type: () => [Factura],
-  })
-  @OneToMany(() => Factura, (factura) => factura.empresa, {
-    cascade: true,
-  })
-  facturas: Factura[];
+  // @ApiProperty({
+  //   description: 'Facturas de la empresa',
+  //   type: () => [Factura],
+  // })
+  // @OneToMany(() => Factura, (factura) => factura.empresa, {
+  //   cascade: true,
+  // })
+  // facturas: Factura[];
 
-  @ApiProperty({
-    description: 'Documentos de la empresa',
-    type: () => [Documento],
-  })
-  @OneToMany(() => Documento, (documento) => documento.empresa, {
-    cascade: true,
-  })
-  documentos: Documento[];
+  // @ApiProperty({
+  //   description: 'Documentos de la empresa',
+  //   type: () => [Documento],
+  // })
+  // @OneToMany(() => Documento, (documento) => documento.empresa, {
+  //   cascade: true,
+  // })
+  // documentos: Documento[];
 
   // ===============================================
   // MÉTODOS DE UTILIDAD

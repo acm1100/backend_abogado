@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { Empresa } from '../../entities/empresa.entity';
 import { Usuario } from '../../entities/usuario.entity';
 import { Rol } from '../../entities/rol.entity';
-import { Suscripcion } from '../../entities/suscripcion.entity';
+import { Suscripcion, EstadoSuscripcion } from '../../entities/suscripcion.entity';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 
@@ -60,18 +60,23 @@ export class EmpresasService {
         throw new BadRequestException(`RUC inválido: ${rucValidation.message}`);
       }
 
+      // Convertir dirección a string si existe
+      const direccionString = createEmpresaDto.direccion 
+        ? `${createEmpresaDto.direccion.calle}, ${createEmpresaDto.direccion.ciudad}, ${createEmpresaDto.direccion.estado}, ${createEmpresaDto.direccion.pais}`
+        : undefined;
+
       // Crear empresa
       const empresa = this.empresaRepository.create({
-        ...createEmpresaDto,
-        activo: true,
-        fechaCreacion: new Date(),
-        fechaActualizacion: new Date(),
+        razonSocial: createEmpresaDto.razonSocial,
+        ruc: createEmpresaDto.ruc,
+        direccion: direccionString,
+        telefono: createEmpresaDto.telefono,
+        email: createEmpresaDto.email,
         // Configuración predeterminada si no se proporciona
         configuracion: {
           zonaHoraria: 'America/Lima',
           formatoFecha: 'DD/MM/YYYY',
           moneda: 'PEN',
-          ...createEmpresaDto.configuracion,
         },
         limites: {
           maxUsuarios: createEmpresaDto.maxUsuarios || 5,
@@ -84,29 +89,26 @@ export class EmpresasService {
       const savedEmpresa = await queryRunner.manager.save(empresa);
 
       // Crear suscripción básica por defecto
+      const empresaId = (savedEmpresa as any).id;
       const suscripcion = this.suscripcionRepository.create({
-        empresaId: savedEmpresa.id,
-        tipo: 'BASICO',
-        estado: 'ACTIVA',
+        empresaId: empresaId,
+        tipoSuscripcion: 'BASICO',
+        estado: EstadoSuscripcion.ACTIVA,
         fechaInicio: new Date(),
         fechaFin: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-        configuracion: {
-          maxUsuarios: createEmpresaDto.maxUsuarios || 5,
-          almacenamientoGb: createEmpresaDto.almacenamientoGb || 10,
-          funcionalidades: ['casos_basico', 'clientes', 'documentos', 'reportes_basico'],
-        },
+        monto: 299.99,
       });
 
       await queryRunner.manager.save(suscripcion);
 
       // Crear roles básicos para la empresa
-      await this.createDefaultRoles(queryRunner, savedEmpresa.id);
+      await this.createDefaultRoles(queryRunner, empresaId);
 
       await queryRunner.commitTransaction();
 
-      this.logger.log(`Empresa creada: ${savedEmpresa.razonSocial} (${savedEmpresa.ruc})`);
+      this.logger.log(`Empresa creada: ${(savedEmpresa as any).razonSocial} (${(savedEmpresa as any).ruc})`);
       
-      return this.findOne(savedEmpresa.id);
+      return this.findOne(empresaId);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Error al crear empresa: ${error.message}`, error.stack);
@@ -335,8 +337,9 @@ export class EmpresasService {
       .getRawMany();
 
     // Calcular días restantes de suscripción
-    const diasRestantes = empresa.suscripcion?.fechaFin
-      ? Math.ceil((empresa.suscripcion.fechaFin.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    const suscripcionActiva = empresa.suscripciones?.[0];
+    const diasRestantes = suscripcionActiva?.fechaFin
+      ? Math.ceil((suscripcionActiva.fechaFin.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0;
 
     return {
@@ -356,8 +359,8 @@ export class EmpresasService {
         },
       },
       suscripcion: {
-        tipo: empresa.suscripcion?.tipo || 'BASICO',
-        estado: empresa.suscripcion?.estado || 'INACTIVA',
+        tipo: suscripcionActiva?.tipoSuscripcion || 'BASICO',
+        estado: suscripcionActiva?.estado || EstadoSuscripcion.ACTIVA,
         diasRestantes,
       },
     };

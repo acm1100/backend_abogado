@@ -14,19 +14,19 @@ import {
   Max,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EstadoFacturacion, MetodoPago } from '../../../entities/facturacion.entity';
+import { EstadoFactura, MetodoPago } from '../../../entities/facturacion.entity';
 
 export class UpdateFacturacionDto extends PartialType(CreateFacturacionDto) {
   @ApiPropertyOptional({
     description: 'Cambiar estado de la factura',
-    enum: EstadoFacturacion,
-    example: EstadoFacturacion.EMITIDA,
+    enum: EstadoFactura,
+    example: EstadoFactura.EMITIDA,
   })
   @IsOptional()
-  @IsEnum(EstadoFacturacion, {
+  @IsEnum(EstadoFactura, {
     message: 'Estado de facturación no válido',
   })
-  estado?: EstadoFacturacion;
+  estado?: EstadoFactura;
 
   @ApiPropertyOptional({
     description: 'Motivo del cambio de estado',
@@ -61,7 +61,7 @@ export class UpdateFacturacionDto extends PartialType(CreateFacturacionDto) {
   @ApiPropertyOptional({
     description: 'Método utilizado para el pago',
     enum: MetodoPago,
-    example: MetodoPago.TRANSFERENCIA_BANCARIA,
+    example: MetodoPago.TRANSFERENCIA,
   })
   @IsOptional()
   @IsEnum(MetodoPago)

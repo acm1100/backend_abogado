@@ -75,9 +75,6 @@ export class FlujoTrabajo extends BaseEntity {
   })
   estado: EstadoFlujo;
 
-  @Column({ type: 'text', nullable: true })
-  configuracion: string;
-
   @Column({ type: 'int', default: 1 })
   version: number;
 
@@ -101,6 +98,37 @@ export class FlujoTrabajo extends BaseEntity {
 
   @Column({ type: 'json', nullable: true })
   metadatos?: any;
+
+  // Campos adicionales requeridos por los servicios
+  @Column({ type: 'uuid', nullable: true })
+  usuarioCreador?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  pasos?: any[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  triggers?: any[];
+
+  @Column({ type: 'int', default: 1 })
+  prioridad: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  configuracion?: any;
+
+  @Column({ type: 'text', nullable: true })
+  etiquetas?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  administradores?: string[];
+
+  @Column({ type: 'boolean', default: true })
+  activo: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaInicio?: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  ejecuciones?: any[];
 
   // Relaciones
   @ManyToOne(() => Empresa, { nullable: false })

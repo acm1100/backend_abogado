@@ -39,7 +39,7 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Permission } from '../../common/decorators/permissions.decorator';
+import { Permissions } from '../../common/decorators/permissions.decorator';
 import { TenantId } from '../../common/decorators/tenant-id.decorator';
 import { TransformInterceptor } from '../../common/interceptors/transform.interceptor';
 
@@ -68,7 +68,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.FORBIDDEN,
     description: 'Sin permisos para crear flujos de trabajo',
   })
-  @Permission('workflows:create')
+  @Permissions('workflows:create')
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(
     @Body() createFlujoTrabajoDto: CreateFlujoTrabajoDto,
@@ -114,9 +114,8 @@ export class FlujosTrabajoController {
   @ApiQuery({
     name: 'usuarioCreador',
     required: false,
-    description: 'Filtrar por creador',
+    description: 'Filtrar por creador (UUID)',
     type: 'string',
-    format: 'uuid',
   })
   @ApiQuery({
     name: 'etiquetas',
@@ -128,7 +127,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.OK,
     description: 'Lista de flujos de trabajo obtenida exitosamente',
   })
-  @Permission('workflows:read')
+  @Permissions('workflows:read')
   async findAll(
     @Query() query: any,
     @Request() req: any,
@@ -164,7 +163,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.OK,
     description: 'Estadísticas obtenidas exitosamente',
   })
-  @Permission('workflows:stats')
+  @Permissions('workflows:stats')
   async obtenerEstadisticas(
     @TenantId() empresaId: string,
   ) {
@@ -180,7 +179,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.OK,
     description: 'Tipos de flujos obtenidos exitosamente',
   })
-  @Permission('workflows:read')
+  @Permissions('workflows:read')
   async obtenerTipos() {
     return {
       tipos: Object.values(TipoFlujoTrabajo).map(tipo => ({
@@ -209,7 +208,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.NOT_FOUND,
     description: 'Flujo de trabajo no encontrado',
   })
-  @Permission('workflows:read')
+  @Permissions('workflows:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @TenantId() empresaId: string,
@@ -231,7 +230,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.OK,
     description: 'Métricas obtenidas exitosamente',
   })
-  @Permission('workflows:metrics')
+  @Permissions('workflows:metrics')
   async obtenerMetricas(
     @Param('id', ParseUUIDPipe) id: string,
     @TenantId() empresaId: string,
@@ -261,7 +260,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Datos de entrada inválidos o cambios no permitidos',
   })
-  @Permission('workflows:update')
+  @Permissions('workflows:update')
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -295,7 +294,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Transición de estado no válida',
   })
-  @Permission('workflows:change-status')
+  @Permissions('workflows:change-status')
   @UsePipes(new ValidationPipe({ transform: true }))
   async cambiarEstado(
     @Param('id', ParseUUIDPipe) id: string,
@@ -330,7 +329,7 @@ export class FlujosTrabajoController {
     description: 'Flujo no ejecutable o datos insuficientes',
   })
   @HttpCode(HttpStatus.OK)
-  @Permission('workflows:execute')
+  @Permissions('workflows:execute')
   @UsePipes(new ValidationPipe({ transform: true }))
   async ejecutar(
     @Param('id', ParseUUIDPipe) id: string,
@@ -361,7 +360,7 @@ export class FlujosTrabajoController {
     description: 'Flujo duplicado exitosamente',
   })
   @HttpCode(HttpStatus.CREATED)
-  @Permission('workflows:create')
+  @Permissions('workflows:create')
   @UsePipes(new ValidationPipe({ transform: true }))
   async duplicar(
     @Param('id', ParseUUIDPipe) id: string,
@@ -391,7 +390,7 @@ export class FlujosTrabajoController {
     description: 'Estructura de flujo inválida',
   })
   @HttpCode(HttpStatus.CREATED)
-  @Permission('workflows:import')
+  @Permissions('workflows:import')
   @UsePipes(new ValidationPipe({ transform: true }))
   async importar(
     @Body() importarDto: ImportarFlujoDto,
@@ -416,7 +415,7 @@ export class FlujosTrabajoController {
     status: HttpStatus.OK,
     description: 'Flujo exportado exitosamente',
   })
-  @Permission('workflows:export')
+  @Permissions('workflows:export')
   async exportar(
     @Param('id', ParseUUIDPipe) id: string,
     @TenantId() empresaId: string,
@@ -429,10 +428,9 @@ export class FlujosTrabajoController {
         nombre: flujo.nombre,
         descripcion: flujo.descripcion,
         tipo: flujo.tipo,
-        pasos: flujo.pasos,
-        triggers: flujo.triggers,
+        tareas: flujo.tareas,
         configuracion: flujo.configuracion,
-        etiquetas: flujo.etiquetas,
+        etiquetas: flujo.tags,
       },
       metadata: {
         exportadoPor: 'Sistema',
@@ -457,7 +455,7 @@ export class FlujosTrabajoController {
     description: 'Flujo activado exitosamente',
   })
   @HttpCode(HttpStatus.OK)
-  @Permission('workflows:activate')
+  @Permissions('workflows:activate')
   async activar(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any,
@@ -491,7 +489,7 @@ export class FlujosTrabajoController {
     description: 'Flujo pausado exitosamente',
   })
   @HttpCode(HttpStatus.OK)
-  @Permission('workflows:pause')
+  @Permissions('workflows:pause')
   async pausar(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { motivo?: string },
@@ -530,7 +528,7 @@ export class FlujosTrabajoController {
     description: 'No se puede eliminar el flujo con ejecuciones activas',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Permission('workflows:delete')
+  @Permissions('workflows:delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any,

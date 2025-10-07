@@ -188,6 +188,6 @@ import { DocumentosModule } from '../documentos/documentos.module';
 })
 export class GastosModule {
   constructor() {
-    console.log('🏢 GastosModule initialized - Expense management system ready');
+    console.log('GastosModule initialized - Expense management system ready');
   }
 }

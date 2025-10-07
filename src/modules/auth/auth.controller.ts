@@ -123,7 +123,7 @@ export class AuthController {
     const userId = req.user.id;
     const refreshToken = body?.refreshToken;
     
-    await this.authService.logout(userId, refreshtoken);
+    await this.authService.logout(userId, refreshToken);
     
     this.logger.log(`Usuario ${userId} cerró sesión`);
     return { message: 'Sesión cerrada exitosamente' };

@@ -350,9 +350,9 @@ export class BitacoraController {
   @ApiQuery({ name: 'hasta', required: false, description: 'Fecha hasta para verificación' })
   @ApiResponse({ status: 200, description: 'Verificación de integridad completada' })
   async verificarIntegridad(
+    @Req() req: any,
     @Query('desde') desde?: string,
-    @Query('hasta') hasta?: string,
-    @Req() req: any
+    @Query('hasta') hasta?: string
   ) {
     const fechaDesde = desde ? new Date(desde) : undefined;
     const fechaHasta = hasta ? new Date(hasta) : undefined;
@@ -497,10 +497,10 @@ export class BitacoraController {
   @ApiResponse({ status: 200, description: 'Actividad de usuario obtenida' })
   async getActividadUsuario(
     @Param('usuarioId', ParseUUIDPipe) usuarioId: string,
+    @TenantId() empresaId: string,
     @Query('fechaDesde') fechaDesde?: string,
     @Query('fechaHasta') fechaHasta?: string,
-    @Query('limite') limite: number = 100,
-    @TenantId() empresaId: string
+    @Query('limite') limite: number = 100
   ) {
     const filtros: FiltrosBitacoraDto = {
       usuarioId,

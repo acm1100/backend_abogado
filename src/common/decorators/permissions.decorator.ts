@@ -10,10 +10,10 @@ export interface RequiredPermission {
 
 /**
  * Decorador para requerir permisos específicos
- * Uso: @RequirePermissions({ modulo: 'clientes', accion: 'crear' })
+ * Uso: @RequirePermissions('clientes.crear') o @RequirePermissions({ modulo: 'clientes', accion: 'crear' })
  */
 export const PERMISSIONS_KEY = 'permissions';
-export const RequirePermissions = (...permissions: RequiredPermission[]) =>
+export const RequirePermissions = (...permissions: (RequiredPermission | string)[]) =>
   SetMetadata(PERMISSIONS_KEY, permissions);
 
 /**
@@ -38,6 +38,18 @@ export const RequireLevel = (level: number) =>
  */
 export const Permission = (modulo: string, accion: string) =>
   RequirePermissions({ modulo, accion });
+
+/**
+ * Decorador para permisos con formato string "modulo:accion"
+ * Uso: @Permissions('clientes:crear') o @Permissions('clientes:crear', 'usuarios:read')
+ */
+export const Permissions = (...permissions: string[]) => {
+  const parsedPermissions = permissions.map(permission => {
+    const [modulo, accion] = permission.split(':');
+    return { modulo, accion };
+  });
+  return RequirePermissions(...parsedPermissions);
+};
 
 /**
  * Decoradores específicos para acciones comunes

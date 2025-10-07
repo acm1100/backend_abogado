@@ -7,6 +7,7 @@ import { Proyecto } from './proyecto.entity';
 import { Empresa } from './empresa.entity';
 
 export enum TipoDocumento {
+  LEGAL = 'LEGAL',
   CONTRATO = 'CONTRATO',
   ESCRITURA = 'ESCRITURA',
   DEMANDA = 'DEMANDA',
@@ -28,7 +29,10 @@ export enum EstadoDocumento {
   BORRADOR = 'BORRADOR',
   REVISION = 'REVISION',
   APROBADO = 'APROBADO',
+  PUBLICADO = 'PUBLICADO',
+  RECHAZADO = 'RECHAZADO',
   FIRMADO = 'FIRMADO',
+  VENCIDO = 'VENCIDO',
   ARCHIVADO = 'ARCHIVADO',
   ANULADO = 'ANULADO'
 }
@@ -41,7 +45,8 @@ export enum CategoriaDocumento {
   LABORAL = 'LABORAL',
   TRIBUTARIO = 'TRIBUTARIO',
   SOCIETARIO = 'SOCIETARIO',
-  INMOBILIARIO = 'INMOBILIARIO'
+  INMOBILIARIO = 'INMOBILIARIO',
+  DEMANDA = 'DEMANDA'
 }
 
 @Entity('documentacion')
@@ -76,8 +81,18 @@ export class Documentacion extends BaseEntity {
   @Column({ type: 'bigint' })
   tamanoArchivo: number;
 
+  // Campo alias para compatibilidad
+  get tamano(): number {
+    return this.tamanoArchivo;
+  }
+
   @Column({ type: 'varchar', length: 64, nullable: true })
   hashArchivo: string;
+
+  // Campo alias para compatibilidad
+  get hash(): string {
+    return this.hashArchivo;
+  }
 
   @Column({ type: 'integer', default: 1 })
   version: number;
@@ -121,6 +136,39 @@ export class Documentacion extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true })
   fechaArchivado: Date;
 
+  // Campos adicionales requeridos por los servicios
+  @Column({ type: 'boolean', default: true })
+  activo: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaModificacion: Date;
+
+  @Column({ type: 'boolean', default: false })
+  firmado: boolean;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  codigoInterno: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  usuarioCreadorId: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  aprobadoPor: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fechaAprobacion: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  configuracion: {
+    requiereFirma?: boolean;
+    esPlantilla?: boolean;
+    permiteVersionado?: boolean;
+    acceso?: {
+      publico?: boolean;
+      equipoAsignado?: string[];
+    };
+  };
+
   @Column({ type: 'uuid' })
   empresaId: string;
 
@@ -143,23 +191,23 @@ export class Documentacion extends BaseEntity {
   documentoPadreId: string;
 
   // Relaciones
-  @ManyToOne(() => Empresa, empresa => empresa.documentos)
+  @ManyToOne(() => Empresa)
   @JoinColumn({ name: 'empresaId' })
   empresa: Empresa;
 
-  @ManyToOne(() => Usuario, usuario => usuario.documentosCreados)
+  @ManyToOne(() => Usuario)
   @JoinColumn({ name: 'creadoPor' })
   creador: Usuario;
 
-  @ManyToOne(() => Cliente, cliente => cliente.documentos, { nullable: true })
+  @ManyToOne(() => Cliente, { nullable: true })
   @JoinColumn({ name: 'clienteId' })
   cliente: Cliente;
 
-  @ManyToOne(() => Caso, caso => caso.documentos, { nullable: true })
+  @ManyToOne(() => Caso, { nullable: true })
   @JoinColumn({ name: 'casoId' })
   caso: Caso;
 
-  @ManyToOne(() => Proyecto, proyecto => proyecto.documentos, { nullable: true })
+  @ManyToOne(() => Proyecto, { nullable: true })
   @JoinColumn({ name: 'proyectoId' })
   proyecto: Proyecto;
 

@@ -2,7 +2,7 @@ import { PartialType, OmitType } from '@nestjs/swagger';
 import { CreateReporteDto, EstadoReporte } from './create-reporte.dto';
 import { IsOptional, IsEnum, IsString, IsObject, IsArray, IsDateString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class UpdateReporteDto extends PartialType(CreateReporteDto) {
   @ApiPropertyOptional({ 

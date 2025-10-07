@@ -21,41 +21,46 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // Tipos de proyecto
 export enum TipoProyecto {
-  CONSULTORIA_LEGAL = 'CONSULTORIA_LEGAL',
-  PROCESO_JUDICIAL = 'PROCESO_JUDICIAL',
-  AUDITORIA_LEGAL = 'AUDITORIA_LEGAL',
-  COMPLIANCE = 'COMPLIANCE',
-  FUSIONES_ADQUISICIONES = 'FUSIONES_ADQUISICIONES',
-  PROPIEDAD_INTELECTUAL = 'PROPIEDAD_INTELECTUAL',
-  LABORAL = 'LABORAL',
-  TRIBUTARIO = 'TRIBUTARIO',
-  SOCIETARIO = 'SOCIETARIO',
-  CONTRACTUAL = 'CONTRACTUAL',
-  INMOBILIARIO = 'INMOBILIARIO',
-  PENAL = 'PENAL',
-  ADMINISTRATIVO = 'ADMINISTRATIVO',
-  PERSONALIZADO = 'PERSONALIZADO',
+  CONSULTORIA = 'consultoria',
+  CONSULTORIA_LEGAL = 'consultoria_legal',
+  LITIGIO = 'litigio',
+  PROCESO_JUDICIAL = 'proceso_judicial',
+  TRANSACCIONAL = 'transaccional',
+  TRANSACCION_COMERCIAL = 'transaccion_comercial',
+  COMPLIANCE = 'compliance',
+  CORPORATIVO = 'corporativo',
+  FUSION_ADQUISICION = 'fusion_adquisicion',
+  INMOBILIARIO = 'inmobiliario',
+  LABORAL = 'laboral',
+  TRIBUTARIO = 'tributario',
+  PENAL = 'penal',
+  ADMINISTRATIVO = 'administrativo',
+  REGULATORIO = 'regulatorio',
+  PROPIEDAD_INTELECTUAL = 'propiedad_intelectual',
+  INTERNACIONAL = 'internacional',
+  INVESTIGACION_LEGAL = 'investigacion_legal',
+  OTROS = 'otros'
 }
 
 // Estados del proyecto
 export enum EstadoProyecto {
-  PLANIFICACION = 'PLANIFICACION',
-  EN_PROGRESO = 'EN_PROGRESO',
-  EN_PAUSA = 'EN_PAUSA',
-  EN_REVISION = 'EN_REVISION',
-  COMPLETADO = 'COMPLETADO',
-  CANCELADO = 'CANCELADO',
-  ARCHIVADO = 'ARCHIVADO',
+  PLANIFICACION = 'planificacion',
+  EN_PROGRESO = 'en_progreso',
+  EN_REVISION = 'en_revision',
+  PAUSADO = 'pausado',
+  COMPLETADO = 'completado',
+  CANCELADO = 'cancelado',
+  CERRADO = 'cerrado',
+  FACTURADO = 'facturado'
 }
 
 // Prioridades
 export enum PrioridadProyecto {
-  MUY_BAJA = 'MUY_BAJA',
-  BAJA = 'BAJA',
-  MEDIA = 'MEDIA',
-  ALTA = 'ALTA',
-  MUY_ALTA = 'MUY_ALTA',
-  CRITICA = 'CRITICA',
+  BAJA = 'baja',
+  MEDIA = 'media',
+  ALTA = 'alta',
+  CRITICA = 'critica',
+  URGENTE = 'urgente'
 }
 
 export class PresupuestoProyectoDto {
@@ -378,7 +383,7 @@ export class CreateProyectoDto {
   @ApiProperty({
     description: 'Tipo de proyecto',
     enum: TipoProyecto,
-    example: TipoProyecto.PROCESO_JUDICIAL,
+    example: TipoProyecto.LITIGIO,
   })
   @IsEnum(TipoProyecto, {
     message: 'Tipo de proyecto no válido',

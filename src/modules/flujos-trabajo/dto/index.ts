@@ -2,13 +2,16 @@ export {
   CreateFlujoTrabajoDto,
   PasoFlujoDto,
   AccionPasoDto,
-  CondicionPasoDto,
   TriggerFlujoDto,
   TipoFlujoTrabajo,
   EstadoFlujoTrabajo,
   TipoAccionPaso,
   TipoCondicion
 } from './create-flujo-trabajo.dto';
+
+export { 
+  CondicionPasoDto 
+} from './condicion-paso.dto';
 
 export { 
   UpdateFlujoTrabajoDto,
@@ -144,7 +147,7 @@ export interface ConfiguracionNotificacionDto {
     sms?: string;
     push?: string;
   };
-  condiciones?: CondicionPasoDto[];
+  condiciones?: any[];
   configuracionAvanzada?: {
     agruparNotificaciones?: boolean;
     intervaloBatch?: number; // minutos

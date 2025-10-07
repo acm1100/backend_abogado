@@ -2,7 +2,7 @@ import { PartialType, OmitType } from '@nestjs/swagger';
 import { CreatePlantillaDto, EstadoPlantilla } from './create-plantilla.dto';
 import { IsOptional, IsEnum, IsString, IsObject, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class UpdatePlantillaDto extends PartialType(CreatePlantillaDto) {
   @ApiPropertyOptional({ 
