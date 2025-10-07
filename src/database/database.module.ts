@@ -13,12 +13,15 @@ import { RolPermiso } from '../entities/rol-permiso.entity';
 import { Usuario } from '../entities/usuario.entity';
 import { Cliente } from '../entities/cliente.entity';
 import { Caso } from '../entities/caso.entity';
-import { Proyecto } from '../entities/proyecto.entity';
-import { FlujoTrabajo } from '../entities/flujo_trabajo.entity';
+import { Proyecto, TareaProyecto, HitoProyecto } from '../entities/proyecto.entity';
+import { FlujoTrabajo, TareaFlujo, InstanciaFlujo, EjecucionTarea } from '../entities/flujo_trabajo.entity';
 import { Gasto } from '../entities/gasto.entity';
 import { Facturacion } from '../entities/facturacion.entity';
 import { Documentacion } from '../entities/documentacion.entity';
 import { Evento } from '../entities/evento.entity';
+import { RegistroTiempo } from '../entities/registro-tiempo.entity';
+import { Documento } from '../entities/documento.entity';
+import { EventoAgenda } from '../entities/evento-agenda.entity';
 
 @Module({
   imports: [
@@ -66,9 +69,14 @@ import { Evento } from '../entities/evento.entity';
             
             // Gestión de proyectos
             Proyecto,
+            TareaProyecto,
+            HitoProyecto,
             
             // Workflows
             FlujoTrabajo,
+            TareaFlujo,
+            InstanciaFlujo,
+            EjecucionTarea,
             
             // Gastos
             Gasto,
@@ -78,9 +86,14 @@ import { Evento } from '../entities/evento.entity';
             
             // Documentos
             Documentacion,
+            Documento,
             
             // Eventos/Agenda
             Evento,
+            EventoAgenda,
+            
+            // Registros de tiempo
+            RegistroTiempo,
           ],
 
           // Migraciones
@@ -92,19 +105,20 @@ import { Evento } from '../entities/evento.entity';
           timezone: 'America/Lima',
           
           // Configuraciones adicionales para producción
-          cache: {
-            type: 'redis',
-            options: {
-              host: configService.get('app.redis.host'),
-              port: configService.get('app.redis.port'),
-              password: configService.get('app.redis.password'),
-              db: configService.get('app.redis.db'),
-            },
-            duration: 300000, // 5 minutos de cache
-          },
+          // TODO: Habilitar cache Redis después de configuración inicial
+          // cache: {
+          //   type: 'redis',
+          //   options: {
+          //     host: configService.get('app.redis.host'),
+          //     port: configService.get('app.redis.port'),
+          //     password: configService.get('app.redis.password'),
+          //     db: configService.get('app.redis.db'),
+          //   },
+          //   duration: 300000, // 5 minutos de cache
+          // },
 
-          // Configuración de charset
-          charset: 'utf8mb4',
+          // Configuración adicional para PostgreSQL
+          // charset no es necesario para PostgreSQL
         };
       },
       inject: [ConfigService],

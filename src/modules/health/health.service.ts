@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class HealthService {
   constructor(
-    @InjectConnection()
-    private readonly connection: Connection,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   async checkHealth() {
@@ -50,7 +50,7 @@ export class HealthService {
     const startTime = Date.now();
     
     try {
-      await this.connection.query('SELECT 1');
+      await this.dataSource.query('SELECT 1');
       const responseTime = Date.now() - startTime;
       
       return {
@@ -101,14 +101,14 @@ export class HealthService {
   private async getDatabaseStats() {
     try {
       // Obtener información de la base de datos PostgreSQL
-      const [connectionInfo] = await this.connection.query(`
+      const [connectionInfo] = await this.dataSource.query(`
         SELECT 
           current_database() as database_name,
           current_user as current_user,
           version() as version
       `);
 
-      const [connectionCount] = await this.connection.query(`
+      const [connectionCount] = await this.dataSource.query(`
         SELECT count(*) as active_connections 
         FROM pg_stat_activity 
         WHERE state = 'active'
@@ -131,7 +131,7 @@ export class HealthService {
   async checkReadiness() {
     try {
       // Verificar que todos los servicios críticos estén disponibles
-      await this.connection.query('SELECT 1');
+      await this.dataSource.query('SELECT 1');
       
       return {
         status: 'ready',

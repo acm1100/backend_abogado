@@ -52,8 +52,8 @@ export enum TipoDocumento {
   (tipo_cliente = 'persona_natural' AND dni IS NOT NULL) OR 
   (tipo_cliente = 'empresa' AND ruc IS NOT NULL)
 `)
-@Check('chk_ruc_cliente_valido', `ruc IS NULL OR validar_ruc_peruano(ruc)`)
-@Check('chk_dni_cliente_valido', `dni IS NULL OR validar_dni_peruano(dni)`)
+@Check('chk_dni_valido', `dni IS NULL OR (length(dni) = 8 AND dni ~ '^[0-9]+$')`)
+@Check('chk_ruc_valido', `ruc IS NULL OR (length(ruc) = 11 AND ruc ~ '^[0-9]+$')`)
 export class Cliente extends BaseEntity {
   @ApiProperty({
     description: 'ID de la empresa',

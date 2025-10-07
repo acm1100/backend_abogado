@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
@@ -52,7 +52,7 @@ async function bootstrap() {
   );
 
   // Guards globales
-  const reflector = app.get('Reflector');
+  const reflector = app.get(Reflector);
   
   // Interceptores globales
   app.useGlobalInterceptors(new TransformInterceptor(reflector));

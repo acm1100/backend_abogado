@@ -39,7 +39,7 @@ export enum EstadoSuscripcion {
 @Entity('empresas')
 @Index('idx_empresas_ruc', ['ruc'])
 @Index('idx_empresas_activo', ['activo'])
-@Check('chk_ruc_valido', `validar_ruc_peruano(ruc)`)
+@Check('chk_ruc_valido', `length(ruc) = 11 AND ruc ~ '^[0-9]+$'`)
 export class Empresa extends BaseEntity {
   @ApiProperty({
     description: 'Razón social de la empresa',

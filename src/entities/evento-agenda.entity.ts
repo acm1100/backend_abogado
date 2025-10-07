@@ -30,7 +30,7 @@ export enum EstadoEventoAgenda {
 }
 
 @Entity('eventos_agenda')
-@Index(['empresaId', 'fecha'])
+@Index(['empresaId', 'fechaInicio'])
 @Index(['empresaId', 'casoId'])
 @Index(['empresaId', 'usuarioId'])
 export class EventoAgenda extends BaseEntity {

@@ -13,6 +13,9 @@ import { Empresa } from './empresa.entity';
 import { Cliente } from './cliente.entity';
 import { Usuario } from './usuario.entity';
 import { Proyecto } from './proyecto.entity';
+import { RegistroTiempo } from './registro-tiempo.entity';
+import { Documento } from './documento.entity';
+import { EventoAgenda } from './evento-agenda.entity';
 // Referencias dinámicas para evitar dependencias circulares
 
 export enum EstadoCaso {
@@ -452,22 +455,22 @@ export class Caso extends BaseEntity {
     description: 'Registros de tiempo del caso',
     type: () => Array,
   })
-  @OneToMany('RegistroTiempo', 'caso')
-  registrosTiempo: any[];
+  @OneToMany(() => RegistroTiempo, registroTiempo => registroTiempo.caso)
+  registrosTiempo: RegistroTiempo[];
 
   @ApiProperty({
     description: 'Documentos del caso',
     type: () => Array,
   })
-  @OneToMany('Documento', 'caso')
-  documentos: any[];
+  @OneToMany(() => Documento, documento => documento.caso)
+  documentos: Documento[];
 
   @ApiProperty({
     description: 'Eventos de agenda relacionados',
     type: () => Array,
   })
-  @OneToMany('EventoAgenda', 'caso')
-  eventos: any[];
+  @OneToMany(() => EventoAgenda, evento => evento.caso)
+  eventos: EventoAgenda[];
 
   // ===============================================
   // MÉTODOS DE UTILIDAD

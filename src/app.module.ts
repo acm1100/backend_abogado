@@ -1,5 +1,6 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import configuration from './config/configuration';
 
 // Base de datos
@@ -40,6 +41,12 @@ import { BitacoraModule } from './modules/bitacora/bitacora.module';
 
     // Base de datos
     DatabaseModule,
+
+    // Rate limiting
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minuto
+      limit: 100, // 100 requests por minuto
+    }]),
 
     // Módulos de autenticación y autorización
     AuthModule,
